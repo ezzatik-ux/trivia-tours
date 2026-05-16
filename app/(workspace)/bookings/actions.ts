@@ -107,10 +107,17 @@ export async function createBooking(input: CreateBookingInput) {
       input.children * parseFloat(rate.netChild) +
       input.infants * parseFloat(rate.netInfant);
 
+    // Generate booking number (DB trigger also generates this as fallback,
+    // but we provide it explicitly to satisfy TypeScript strict mode)
+    const now = new Date();
+    const yymm = `${now.getFullYear().toString().slice(-2)}${(now.getMonth() + 1).toString().padStart(2, "0")}`;
+    const bookingNo = `B-${yymm}-${Date.now().toString().slice(-5)}`;
+
     // Insert booking
     const [created] = await db
       .insert(bookings)
       .values({
+        bookingNo,
         salesOrderNo: input.salesOrderNo.trim(),
         salesAgentId: user.id,
         productId: input.productId,
