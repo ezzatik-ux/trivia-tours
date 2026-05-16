@@ -88,7 +88,11 @@ import {
     id: uuid("id").primaryKey().defaultRandom(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     name: varchar("name", { length: 255 }).notNull(),
-    imageUrl: text("image_url"),
+    emailVerified: timestamp("email_verified", {
+      withTimezone: true,
+      mode: "date",
+    }),
+    image: text("image_url"),
     googleId: varchar("google_id", { length: 255 }).unique(),
     role: userRoleEnum("role").notNull().default("SALES"),
     countryScope: jsonb("country_scope").$type<string[]>().default([]),
@@ -96,7 +100,9 @@ import {
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   });
-  
+
+  export const usersRelations = relations(users, () => ({}));
+
   /* ============================================================
      GEOGRAPHY
   ============================================================ */
@@ -492,3 +498,5 @@ import {
     statusHistory: many(bookingStatusHistory),
     opsActions: many(opsActions),
   }));
+
+export * from "./auth-schema";
