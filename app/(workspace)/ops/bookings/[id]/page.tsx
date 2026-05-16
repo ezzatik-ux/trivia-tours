@@ -23,6 +23,7 @@ import { SupplierBox } from "./supplier-box";
 import { InternalNotes } from "./internal-notes";
 import { StatusHistory } from "./status-history";
 import { getStatusHistory } from "./actions";
+import { VoucherButton } from "./voucher/voucher-button";
 
 export default async function OpsBookingDetailPage({
   params,
@@ -216,6 +217,12 @@ export default async function OpsBookingDetailPage({
             bookingId={id}
             initialSupplierRef={booking.supplierRef}
             supplierName={supplierName}
+          />
+
+          <VoucherButton
+            bookingId={id}
+            bookingNo={booking.bookingNo}
+            bookingStatus={booking.status}
           />
 
           {(supplierEmail || supplierPhone) && (

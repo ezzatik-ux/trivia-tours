@@ -13,12 +13,7 @@ export default async function WorkspaceLayout({
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar userRole={user.role} />
       <div className="flex-1 flex flex-col">
-        <Topbar
-          name={user.name}
-          email={user.email}
-          image={user.image}
-          role={user.role}
-        />
+        <Topbar />
         <main className="flex-1 p-8 overflow-y-auto">{children}</main>
       </div>
     </div>

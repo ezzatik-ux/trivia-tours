@@ -44,6 +44,12 @@ const NAV_ITEMS: NavItem[] = [
     icon: Calendar,
     roles: ["SALES", "OPS", "ADMIN"],
   },
+  {
+    label: "Analytics",
+    href: "/analytics",
+    icon: BarChart3,
+    roles: ["OPS", "ADMIN", "SALES"],
+  },
   // Product Team workspace
   {
     label: "Products",
@@ -69,12 +75,6 @@ const NAV_ITEMS: NavItem[] = [
     label: "Users",
     href: "/admin/users",
     icon: Users,
-    roles: ["ADMIN"],
-  },
-  {
-    label: "Analytics",
-    href: "/admin/analytics",
-    icon: BarChart3,
     roles: ["ADMIN"],
   },
   {
