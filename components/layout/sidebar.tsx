@@ -79,17 +79,24 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const role = session?.user?.role as Role | undefined;
 
+  // Show loading skeleton while session loads
   if (status === "loading") {
     return (
-      <aside
-        className="hidden md:flex md:flex-col w-64 min-h-screen bg-trivia-900 border-r border-trivia-950 flex-shrink-0"
-        aria-hidden
-      />
+      <aside className="hidden md:flex md:flex-col w-64 bg-trivia-900 border-r border-trivia-950 flex-shrink-0">
+        <div className="px-5 py-6 border-b border-white/5">
+          <div className="h-9 bg-white/5 rounded-lg animate-pulse" />
+        </div>
+        <div className="px-3 py-4 space-y-2">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-10 bg-white/5 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      </aside>
     );
   }
 
+  const role = session?.user?.role as Role | undefined;
   if (!role) return null;
 
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
