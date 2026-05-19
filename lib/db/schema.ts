@@ -459,17 +459,244 @@ import {
   );
   
   /* ============================================================
+     HOTELS MODULE
+  ============================================================ */
+  export const hotelStatusEnum = pgEnum("hotel_status", ["DRAFT", "ACTIVE", "INACTIVE"]);
+  export const mealPlanEnum = pgEnum("meal_plan", ["RO", "BB", "HB", "FB", "AI"]);
+  export const occupancyEnum = pgEnum("occupancy", ["SINGLE", "DOUBLE", "TRIPLE", "QUAD"]);
+  export const hotelBookingStatusEnum = pgEnum("hotel_booking_status", [
+    "NEW",
+    "ACK",
+    "HOTEL_CONTACTED",
+    "AWAITING_INVOICE",
+    "CONFIRMED",
+    "VOUCHER_ISSUED",
+    "CHECKED_IN",
+    "CHECKED_OUT",
+    "COMPLETED",
+    "CANCELLED",
+  ]);
+
+  export const hotels = pgTable("hotels", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    brand: text("brand"),
+    starRating: integer("star_rating"),
+    countryId: uuid("country_id")
+      .notNull()
+      .references(() => countries.id),
+    cityId: uuid("city_id").references(() => cities.id),
+    address: text("address"),
+    latitude: numeric("latitude", { precision: 10, scale: 7 }),
+    longitude: numeric("longitude", { precision: 10, scale: 7 }),
+    shortDesc: text("short_desc"),
+    longDesc: text("long_desc"),
+    amenities: jsonb("amenities").$type<string[]>().default([]),
+    policies: text("policies"),
+    cancellationPolicy: text("cancellation_policy"),
+    importantInfo: text("important_info"),
+    contactName: text("contact_name"),
+    contactEmail: text("contact_email"),
+    contactPhone: text("contact_phone"),
+    reservationEmail: text("reservation_email"),
+    status: hotelStatusEnum("status").default("DRAFT").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  export const hotelImages = pgTable("hotel_images", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    hotelId: uuid("hotel_id")
+      .notNull()
+      .references(() => hotels.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    caption: text("caption"),
+    isCover: boolean("is_cover").default(false).notNull(),
+    sortOrder: integer("sort_order").default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  export const hotelRoomTypes = pgTable("hotel_room_types", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    hotelId: uuid("hotel_id")
+      .notNull()
+      .references(() => hotels.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    maxOccupancy: integer("max_occupancy").default(2).notNull(),
+    bedConfig: text("bed_config"),
+    sizeM2: numeric("size_m2", { precision: 6, scale: 2 }),
+    view: text("view"),
+    images: jsonb("images").$type<string[]>().default([]),
+    amenities: jsonb("amenities").$type<string[]>().default([]),
+    totalRooms: integer("total_rooms"),
+    sortOrder: integer("sort_order").default(0),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  export const hotelRateSeasons = pgTable("hotel_rate_seasons", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    hotelId: uuid("hotel_id")
+      .notNull()
+      .references(() => hotels.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    validFrom: date("valid_from").notNull(),
+    validTo: date("valid_to").notNull(),
+    surchargePerNight: numeric("surcharge_per_night", { precision: 10, scale: 2 }).default("0"),
+    priority: integer("priority").default(0),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  export const hotelRates = pgTable("hotel_rates", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    hotelId: uuid("hotel_id")
+      .notNull()
+      .references(() => hotels.id, { onDelete: "cascade" }),
+    roomTypeId: uuid("room_type_id")
+      .notNull()
+      .references(() => hotelRoomTypes.id, { onDelete: "cascade" }),
+    seasonId: uuid("season_id").references(() => hotelRateSeasons.id, { onDelete: "set null" }),
+    validFrom: date("valid_from").notNull(),
+    validTo: date("valid_to").notNull(),
+    netSingle: numeric("net_single", { precision: 10, scale: 2 }).default("0"),
+    netDouble: numeric("net_double", { precision: 10, scale: 2 }).notNull(),
+    netTriple: numeric("net_triple", { precision: 10, scale: 2 }).default("0"),
+    netQuad: numeric("net_quad", { precision: 10, scale: 2 }).default("0"),
+    markupPct: numeric("markup_pct", { precision: 5, scale: 2 }).default("0"),
+    commissionPct: numeric("commission_pct", { precision: 5, scale: 2 }).default("0"),
+    sellSingle: numeric("sell_single", { precision: 10, scale: 2 }).default("0"),
+    sellDouble: numeric("sell_double", { precision: 10, scale: 2 }).default("0"),
+    sellTriple: numeric("sell_triple", { precision: 10, scale: 2 }).default("0"),
+    sellQuad: numeric("sell_quad", { precision: 10, scale: 2 }).default("0"),
+    mealPlan: mealPlanEnum("meal_plan").default("RO").notNull(),
+    childAgeMin: integer("child_age_min").default(2),
+    childAgeMax: integer("child_age_max").default(11),
+    childRate: numeric("child_rate", { precision: 10, scale: 2 }).default("0"),
+    childMealSupplement: numeric("child_meal_supplement", { precision: 10, scale: 2 }).default("0"),
+    earlyBirdDays: integer("early_bird_days"),
+    earlyBirdPct: numeric("early_bird_pct", { precision: 5, scale: 2 }),
+    minNights: integer("min_nights").default(1),
+    maxNights: integer("max_nights"),
+    originalCurrency: text("original_currency").default("USD"),
+    exchangeRateAtUpload: numeric("exchange_rate_at_upload", { precision: 12, scale: 6 }).default("1"),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  export const hotelBookings = pgTable("hotel_bookings", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingNo: text("booking_no").notNull().unique(),
+    salesOrderNo: text("sales_order_no").notNull(),
+    invoiceNoOdoo: text("invoice_no_odoo"),
+    salesAgentId: uuid("sales_agent_id")
+      .notNull()
+      .references(() => users.id),
+    assignedOpsId: uuid("assigned_ops_id").references(() => users.id),
+    hotelId: uuid("hotel_id")
+      .notNull()
+      .references(() => hotels.id),
+    roomTypeId: uuid("room_type_id")
+      .notNull()
+      .references(() => hotelRoomTypes.id),
+    rateId: uuid("rate_id")
+      .notNull()
+      .references(() => hotelRates.id),
+    customerName: text("customer_name").notNull(),
+    customerEmail: text("customer_email"),
+    customerPhone: text("customer_phone"),
+    customerCountry: text("customer_country"),
+    customerNationality: text("customer_nationality"),
+    checkIn: date("check_in").notNull(),
+    checkOut: date("check_out").notNull(),
+    nights: integer("nights").notNull(),
+    numRooms: integer("num_rooms").default(1).notNull(),
+    occupancy: occupancyEnum("occupancy").default("DOUBLE").notNull(),
+    adults: integer("adults").default(2).notNull(),
+    children: integer("children").default(0).notNull(),
+    infants: integer("infants").default(0).notNull(),
+    unitRate: numeric("unit_rate", { precision: 10, scale: 2 }).notNull(),
+    childSupplements: numeric("child_supplements", { precision: 10, scale: 2 }).default("0"),
+    seasonSurcharge: numeric("season_surcharge", { precision: 10, scale: 2 }).default("0"),
+    earlyBirdDiscount: numeric("early_bird_discount", { precision: 10, scale: 2 }).default("0"),
+    netCost: numeric("net_cost", { precision: 10, scale: 2 }).notNull(),
+    totalPrice: numeric("total_price", { precision: 10, scale: 2 }).notNull(),
+    hotelConfirmationRef: text("hotel_confirmation_ref"),
+    emailSentToHotel: boolean("email_sent_to_hotel").default(false),
+    emailSentAt: timestamp("email_sent_at", { withTimezone: true }),
+    status: hotelBookingStatusEnum("status").default("NEW").notNull(),
+    paymentStatus: text("payment_status").default("PENDING"),
+    specialRequests: text("special_requests"),
+    internalNotes: text("internal_notes"),
+    cancellationReason: text("cancellation_reason"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    voucherIssuedAt: timestamp("voucher_issued_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  export const hotelBookingStatusHistory = pgTable("hotel_booking_status_history", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => hotelBookings.id, { onDelete: "cascade" }),
+    fromStatus: text("from_status"),
+    toStatus: text("to_status").notNull(),
+    changedBy: uuid("changed_by").references(() => users.id),
+    note: text("note"),
+    changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  /* ============================================================
      RELATIONS
   ============================================================ */
   export const countriesRelations = relations(countries, ({ many }) => ({
     cities: many(cities),
     products: many(products),
     suppliers: many(suppliers),
+    hotels: many(hotels),
   }));
   
   export const citiesRelations = relations(cities, ({ one, many }) => ({
     country: one(countries, { fields: [cities.countryId], references: [countries.id] }),
     products: many(products),
+    hotels: many(hotels),
+  }));
+
+  export const hotelsRelations = relations(hotels, ({ one, many }) => ({
+    country: one(countries, { fields: [hotels.countryId], references: [countries.id] }),
+    city: one(cities, { fields: [hotels.cityId], references: [cities.id] }),
+    images: many(hotelImages),
+    roomTypes: many(hotelRoomTypes),
+    rateSeasons: many(hotelRateSeasons),
+    rates: many(hotelRates),
+    bookings: many(hotelBookings),
+  }));
+
+  export const hotelRoomTypesRelations = relations(hotelRoomTypes, ({ one, many }) => ({
+    hotel: one(hotels, { fields: [hotelRoomTypes.hotelId], references: [hotels.id] }),
+    rates: many(hotelRates),
+    bookings: many(hotelBookings),
+  }));
+
+  export const hotelRatesRelations = relations(hotelRates, ({ one }) => ({
+    hotel: one(hotels, { fields: [hotelRates.hotelId], references: [hotels.id] }),
+    roomType: one(hotelRoomTypes, { fields: [hotelRates.roomTypeId], references: [hotelRoomTypes.id] }),
+    season: one(hotelRateSeasons, { fields: [hotelRates.seasonId], references: [hotelRateSeasons.id] }),
+  }));
+
+  export const hotelBookingsRelations = relations(hotelBookings, ({ one, many }) => ({
+    hotel: one(hotels, { fields: [hotelBookings.hotelId], references: [hotels.id] }),
+    roomType: one(hotelRoomTypes, { fields: [hotelBookings.roomTypeId], references: [hotelRoomTypes.id] }),
+    rate: one(hotelRates, { fields: [hotelBookings.rateId], references: [hotelRates.id] }),
+    salesAgent: one(users, { fields: [hotelBookings.salesAgentId], references: [users.id] }),
+    assignedOps: one(users, { fields: [hotelBookings.assignedOpsId], references: [users.id] }),
+    statusHistory: many(hotelBookingStatusHistory),
   }));
   
   export const productsRelations = relations(products, ({ one, many }) => ({

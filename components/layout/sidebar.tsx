@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   Building2,
+  Hotel,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,12 @@ const navItems = [
     roles: ["SALES", "ADMIN"],
   },
   {
+    label: "Hotels",
+    href: "/hotels",
+    icon: Building2,
+    roles: ["SALES", "ADMIN"],
+  },
+  {
     label: "Products",
     href: "/products",
     icon: Package2,
@@ -51,9 +58,21 @@ const navItems = [
     roles: ["PRODUCT", "ADMIN"],
   },
   {
+    label: "Manage Hotels",
+    href: "/admin/hotels",
+    icon: Hotel,
+    roles: ["PRODUCT", "ADMIN"],
+  },
+  {
     label: "Booking Queue",
     href: "/ops/queue",
     icon: Truck,
+    roles: ["OPS", "ADMIN"],
+  },
+  {
+    label: "Hotel Queue",
+    href: "/ops/hotel-queue",
+    icon: Hotel,
     roles: ["OPS", "ADMIN"],
   },
   {

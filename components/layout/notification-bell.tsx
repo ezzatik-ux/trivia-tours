@@ -55,43 +55,57 @@ export function NotificationBell({ currentUserId }: Props) {
     loadNotifications();
   }, []);
 
+  // Real-time subscription (gracefully handles missing Supabase client)
   useEffect(() => {
-    const channel = supabase
-      .channel(`notifications:${currentUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${currentUserId}`,
-        },
-        (payload) => {
-          loadNotifications();
+    if (!supabase) {
+      console.warn("Supabase client not initialized — Realtime disabled. Check NEXT_PUBLIC_SUPABASE_* env vars.");
+      return;
+    }
 
-          if ("Notification" in window && Notification.permission === "granted") {
-            const data = payload.new as { title?: string; message?: string };
-            new Notification(data.title || "New notification", {
-              body: data.message || "",
-              icon: "/favicon.ico",
-            });
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${currentUserId}`,
-        },
-        () => {
-          loadNotifications();
-        }
-      )
-      .subscribe();
+    // Use unique channel name per mount to avoid stale channel conflicts
+    const channelName = `notifications:${currentUserId}:${Date.now()}`;
 
+    const channel = supabase.channel(channelName);
+
+    // Attach ALL listeners BEFORE subscribe
+    channel.on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${currentUserId}`,
+      },
+      (payload) => {
+        loadNotifications();
+
+        if ("Notification" in window && Notification.permission === "granted") {
+          const data = payload.new as { title?: string; message?: string };
+          new Notification(data.title || "New notification", {
+            body: data.message || "",
+            icon: "/favicon.ico",
+          });
+        }
+      }
+    );
+
+    channel.on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${currentUserId}`,
+      },
+      () => {
+        loadNotifications();
+      }
+    );
+
+    // Subscribe AFTER all listeners are attached
+    channel.subscribe();
+
+    // Cleanup
     return () => {
       supabase.removeChannel(channel);
     };
