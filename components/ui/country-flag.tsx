@@ -1,5 +1,5 @@
 import * as Flags from "country-flag-icons/react/3x2";
-import { getUnicodeFlagIcon } from "country-flag-icons/unicode";
+import getUnicodeFlagIcon from "country-flag-icons/unicode";
 import { cn } from "@/lib/utils";
 
 type FlagModule = Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>>;
@@ -37,15 +37,16 @@ export function CountryFlag({ code, name, className, title }: Props) {
   }
 
   return (
-    <Flag
-      title={label}
-      aria-label={label}
-      className={cn(
-        "inline-block align-[-0.125em] rounded-[2px] ring-1 ring-black/5",
-        "h-[1em] w-[1.5em]",
-        className
-      )}
-    />
+    <span title={label} className="inline-block">
+      <Flag
+        aria-label={label}
+        className={cn(
+          "inline-block align-[-0.125em] rounded-[2px] ring-1 ring-black/5",
+          "h-[1em] w-[1.5em]",
+          className
+        )}
+      />
+    </span>
   );
 }
 
