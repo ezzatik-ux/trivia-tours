@@ -12,6 +12,7 @@ import {
   Globe,
   Hotel as HotelIcon,
   FileText,
+  FileDown,
 } from "lucide-react";
 import { requireRole } from "@/lib/auth-utils";
 import { getHotelBookingDetail } from "../../hotel-queue/actions";
@@ -99,6 +100,21 @@ export default async function HotelBookingDetailPage({
             {booking.customerName} · {booking.hotelName}
           </p>
         </div>
+
+        {/* Voucher download button (only after CONFIRMED) */}
+        {["CONFIRMED", "VOUCHER_ISSUED", "CHECKED_IN", "CHECKED_OUT", "COMPLETED"].includes(
+          booking.status
+        ) && (
+          <a
+            href={`/api/voucher/hotel/${booking.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-trivia-500 hover:bg-trivia-600 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
+          >
+            <FileDown className="w-4 h-4" />
+            Download Voucher
+          </a>
+        )}
       </div>
 
       {/* Status Pipeline */}
