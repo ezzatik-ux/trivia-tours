@@ -19,6 +19,7 @@ import { ProductTypeBadge } from "@/components/ui/product-type-badge";
 import { StatusChart } from "./status-chart";
 import { RevenueChart } from "./revenue-chart";
 import { CountryChart } from "./country-chart";
+import { CountryFlag } from "@/components/ui/country-flag";
 import { exportBookings, type DateRange } from "./actions";
 
 const RANGES: Array<{ value: DateRange; label: string }> = [
@@ -44,7 +45,7 @@ type Props = {
   revenueTrend: Array<{ month: string; revenue: number; bookings: number }>;
   topCountries: Array<{
     countryName: string | null;
-    countryFlag: string | null;
+    countryCode: string | null;
     bookings: number;
     revenue: number;
   }>;
@@ -59,7 +60,7 @@ type Props = {
   topProducts: Array<{
     productName: string | null;
     productType: "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER" | null;
-    countryFlag: string | null;
+    countryCode: string | null;
     bookings: number;
     revenue: number;
   }>;
@@ -72,9 +73,10 @@ type Props = {
     status: "NEW" | "ACK" | "SUPPLIER_CONTACTED" | "CONFIRMED" | "VOUCHER_ISSUED" | "OPERATED" | "CLOSED" | "CANCELLED";
     productName: string | null;
     productType: "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER" | null;
-    countryFlag: string | null;
+    countryCode: string | null;
   }>;
   canExport: boolean;
+  children?: React.ReactNode;
 };
 
 function formatCurrency(value: number): string {
@@ -221,6 +223,8 @@ export function AnalyticsView(props: Props) {
       <ChartCard title="Upcoming Travel (Next 7 Days)" icon={Calendar}>
         <UpcomingTravelTable bookings={props.upcomingTravel} />
       </ChartCard>
+
+      {props.children}
     </div>
   );
 }
@@ -320,7 +324,7 @@ function ProductsTable({ products }: { products: Props["topProducts"] }) {
             <tr key={idx}>
               <td className="py-3">
                 <div className="flex items-center gap-2">
-                  {p.countryFlag && <span>{p.countryFlag}</span>}
+                  {p.countryCode && <CountryFlag code={p.countryCode} />}
                   <span className="font-medium text-slate-900">{p.productName}</span>
                 </div>
               </td>
@@ -391,7 +395,7 @@ function UpcomingTravelTable({ bookings }: { bookings: Props["upcomingTravel"] }
               <td className="py-3 text-slate-700">{b.customerName}</td>
               <td className="py-3">
                 <div className="flex items-center gap-2">
-                  {b.countryFlag && <span>{b.countryFlag}</span>}
+                  {b.countryCode && <CountryFlag code={b.countryCode} />}
                   <span className="text-slate-700 truncate max-w-[200px]">{b.productName}</span>
                 </div>
               </td>

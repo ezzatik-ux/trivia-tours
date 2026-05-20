@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { Loader2, Star, Hotel as HotelIcon } from "lucide-react";
 import { ListEditor } from "@/components/ui/list-editor";
 import { ProductImageManager, type ProductImage } from "@/components/ui/product-image-manager";
+import { countryFlagEmoji } from "@/components/ui/country-flag";
 import { createHotel, updateHotel, type HotelInput } from "./actions";
 
 type Country = {
   id: string;
+  code: string | null;
   name: string;
-  flagEmoji: string | null;
 };
 
 type Props = {
@@ -180,7 +181,7 @@ export function HotelForm({ mode, hotelId, countries, initialData }: Props) {
               <option value="">-- Select Country --</option>
               {countries.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.flagEmoji} {c.name}
+                  {countryFlagEmoji(c.code)} {c.name}
                 </option>
               ))}
             </select>

@@ -24,6 +24,7 @@ import { InternalNotes } from "./internal-notes";
 import { StatusHistory } from "./status-history";
 import { getStatusHistory } from "./actions";
 import { VoucherButton } from "./voucher/voucher-button";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 export default async function OpsBookingDetailPage({
   params,
@@ -40,7 +41,7 @@ export default async function OpsBookingDetailPage({
       productName: products.name,
       productType: products.type,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       supplierName: suppliers.name,
       supplierEmail: suppliers.contactEmail,
       supplierPhone: suppliers.contactPhone,
@@ -64,7 +65,7 @@ export default async function OpsBookingDetailPage({
     productName,
     productType,
     countryName,
-    countryFlag,
+    countryCode,
     supplierName,
     supplierEmail,
     supplierPhone,
@@ -91,9 +92,9 @@ export default async function OpsBookingDetailPage({
                   type={productType as "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER"}
                 />
               )}
-              {countryFlag && (
-                <span className="text-sm text-slate-600">
-                  {countryFlag} {countryName}
+              {countryCode && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+                  <CountryFlag code={countryCode} name={countryName} /> {countryName}
                 </span>
               )}
               <BookingStatusBadge status={booking.status} />

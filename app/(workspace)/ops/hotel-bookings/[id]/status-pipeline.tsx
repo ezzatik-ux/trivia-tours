@@ -31,58 +31,68 @@ export function StatusPipeline({ currentStatus }: Props) {
   const currentIdx = PIPELINE.findIndex((p) => p.status === currentStatus);
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-5 overflow-x-auto">
-      <div className="flex items-center min-w-max">
-        {PIPELINE.map((step, idx) => {
-          const isComplete = idx < currentIdx;
-          const isCurrent = idx === currentIdx;
-          const isFuture = idx > currentIdx;
+    <div className="bg-white border border-slate-200 rounded-2xl p-5">
+      {/* Mobile hint */}
+      <div className="md:hidden mb-3 flex items-center gap-2 text-xs text-slate-500">
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+        </svg>
+        Swipe to see full pipeline
+      </div>
 
-          return (
-            <div key={step.status} className="flex items-center flex-shrink-0">
-              {/* Step circle */}
-              <div className="flex flex-col items-center w-20">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                    isComplete
-                      ? "bg-emerald-500 border-emerald-500 text-white"
-                      : isCurrent
-                      ? "bg-trivia-500 border-trivia-500 text-white shadow-brand"
-                      : "bg-white border-slate-300 text-slate-400"
-                  }`}
-                >
-                  {isComplete ? (
-                    <Check className="w-4 h-4" />
-                  ) : isCurrent ? (
-                    <Circle className="w-3 h-3 fill-current" />
-                  ) : (
-                    <span className="text-xs font-bold">{idx + 1}</span>
-                  )}
+      <div className="overflow-x-auto -mx-1 px-1">
+        <div className="flex items-center min-w-max">
+          {PIPELINE.map((step, idx) => {
+            const isComplete = idx < currentIdx;
+            const isCurrent = idx === currentIdx;
+            const isFuture = idx > currentIdx;
+
+            return (
+              <div key={step.status} className="flex items-center flex-shrink-0">
+                {/* Step circle */}
+                <div className="flex flex-col items-center w-20">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                      isComplete
+                        ? "bg-emerald-500 border-emerald-500 text-white"
+                        : isCurrent
+                        ? "bg-trivia-500 border-trivia-500 text-white shadow-brand"
+                        : "bg-white border-slate-300 text-slate-400"
+                    }`}
+                  >
+                    {isComplete ? (
+                      <Check className="w-4 h-4" />
+                    ) : isCurrent ? (
+                      <Circle className="w-3 h-3 fill-current" />
+                    ) : (
+                      <span className="text-xs font-bold">{idx + 1}</span>
+                    )}
+                  </div>
+                  <span
+                    className={`mt-2 text-[10px] uppercase tracking-wider font-semibold text-center leading-tight ${
+                      isCurrent
+                        ? "text-trivia-700"
+                        : isComplete
+                        ? "text-emerald-700"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
                 </div>
-                <span
-                  className={`mt-2 text-[10px] uppercase tracking-wider font-semibold text-center leading-tight ${
-                    isCurrent
-                      ? "text-trivia-700"
-                      : isComplete
-                      ? "text-emerald-700"
-                      : "text-slate-400"
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
 
-              {/* Connector line */}
-              {idx < PIPELINE.length - 1 && (
-                <div
-                  className={`h-0.5 w-8 -mt-6 transition-colors ${
-                    isComplete ? "bg-emerald-500" : "bg-slate-200"
-                  }`}
-                />
-              )}
-            </div>
-          );
-        })}
+                {/* Connector line */}
+                {idx < PIPELINE.length - 1 && (
+                  <div
+                    className={`h-0.5 w-8 -mt-6 transition-colors ${
+                      isComplete ? "bg-emerald-500" : "bg-slate-200"
+                    }`}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

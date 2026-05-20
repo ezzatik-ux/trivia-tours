@@ -9,7 +9,6 @@ type Country = {
   id: string;
   code: string;
   name: string;
-  flagEmoji: string | null;
   productCount: number;
 };
 
@@ -93,7 +92,7 @@ export function CountryGrid({ countries }: Props) {
                 key={country.id}
                 countryId={country.id}
                 name={country.name}
-                flagEmoji={country.flagEmoji}
+                code={country.code}
                 productCount={country.productCount}
               />
             ))}

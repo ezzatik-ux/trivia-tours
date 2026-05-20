@@ -9,11 +9,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { countryFlagEmoji } from "@/components/ui/country-flag";
 
 type Props = {
   data: Array<{
     countryName: string | null;
-    countryFlag: string | null;
+    countryCode: string | null;
     bookings: number;
     revenue: number;
   }>;
@@ -28,11 +29,14 @@ export function CountryChart({ data }: Props) {
     );
   }
 
-  const chartData = data.map((d) => ({
-    name: `${d.countryFlag ?? ""} ${d.countryName ?? "Unknown"}`,
-    revenue: d.revenue,
-    bookings: d.bookings,
-  }));
+  const chartData = data.map((d) => {
+    const emoji = countryFlagEmoji(d.countryCode);
+    return {
+      name: emoji ? `${emoji} ${d.countryName ?? "Unknown"}` : d.countryName ?? "Unknown",
+      revenue: d.revenue,
+      bookings: d.bookings,
+    };
+  });
 
   return (
     <ResponsiveContainer width="100%" height={Math.max(250, data.length * 36)}>

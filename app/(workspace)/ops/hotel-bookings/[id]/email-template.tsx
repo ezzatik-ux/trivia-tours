@@ -171,7 +171,7 @@ operations@triviaeg.com`;
             {copied === "body" ? "Copied!" : "Copy"}
           </button>
         </div>
-        <div className="p-3 bg-slate-50 rounded-lg text-xs text-slate-900 font-mono whitespace-pre-wrap max-h-64 overflow-y-auto">
+        <div className="p-3 bg-slate-50 rounded-lg text-xs text-slate-900 font-mono whitespace-pre-wrap max-h-48 md:max-h-64 overflow-y-auto">
           {body}
         </div>
       </div>

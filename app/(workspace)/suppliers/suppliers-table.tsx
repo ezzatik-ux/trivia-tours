@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import { Edit2, Plus, Search, Power, PowerOff } from "lucide-react";
 import { SupplierFormModal } from "./supplier-form-modal";
+import { CountryFlag } from "@/components/ui/country-flag";
 import { toggleSupplierActive } from "./actions";
 
 type Country = {
   id: string;
+  code: string | null;
   name: string;
-  flagEmoji: string | null;
 };
 
 type Supplier = {
@@ -16,7 +17,7 @@ type Supplier = {
   name: string;
   countryId: string | null;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   contactName: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
@@ -142,9 +143,10 @@ export function SuppliersTable({ suppliers, countries }: Props) {
                     )}
                   </td>
                   <td className="px-6 py-4 text-slate-700">
-                    {supplier.countryFlag && supplier.countryName ? (
-                      <span>
-                        {supplier.countryFlag} {supplier.countryName}
+                    {supplier.countryCode && supplier.countryName ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <CountryFlag code={supplier.countryCode} name={supplier.countryName} />
+                        {supplier.countryName}
                       </span>
                     ) : (
                       <span className="text-slate-400">—</span>

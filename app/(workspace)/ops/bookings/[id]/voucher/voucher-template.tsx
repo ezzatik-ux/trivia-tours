@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
 } from "@react-pdf/renderer";
+import { countryFlagEmoji } from "@/components/ui/country-flag";
 
 const styles = StyleSheet.create({
   page: {
@@ -264,7 +265,7 @@ export type VoucherProps = {
   productName: string;
   productType: string;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   durationHours: string | null;
   coverImage: string | null;
   customerName: string;
@@ -322,7 +323,7 @@ export function VoucherTemplate(props: VoucherProps) {
           )}
           <Text style={styles.productName}>{props.productName}</Text>
           <View style={styles.productMeta}>
-            <Text>{props.countryName ? `${props.countryFlag ?? ""} ${props.countryName}` : ""}</Text>
+            <Text>{props.countryName ? `${countryFlagEmoji(props.countryCode)} ${props.countryName}`.trim() : ""}</Text>
             <Text>•</Text>
             <Text>{props.productType}</Text>
             {props.durationHours && (

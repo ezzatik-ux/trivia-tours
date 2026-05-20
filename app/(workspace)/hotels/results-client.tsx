@@ -23,7 +23,7 @@ type Hotel = {
   amenities: string[] | null;
   countryId: string;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   coverImage: string | null;
   minPrice: number | null;
 };

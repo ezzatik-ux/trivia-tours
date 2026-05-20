@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, MapPin, Calendar, Users, Hotel } from "lucide-react";
+import { CountryFlag, countryFlagEmoji } from "@/components/ui/country-flag";
 
 type Country = {
   id: string;
+  code: string | null;
   name: string;
-  flagEmoji: string | null;
   hotelCount: number;
 };
 
@@ -75,7 +76,7 @@ export function HotelSearchHero({ countries }: Props) {
                   <option value="ALL">All destinations</option>
                   {countries.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.flagEmoji} {c.name} ({c.hotelCount})
+                      {countryFlagEmoji(c.code)} {c.name} ({c.hotelCount})
                     </option>
                   ))}
                 </select>
@@ -177,7 +178,9 @@ export function HotelSearchHero({ countries }: Props) {
                 }}
                 className="group bg-white border border-slate-200 hover:border-trivia-300 rounded-2xl p-4 text-left transition-all hover:shadow-medium"
               >
-                <div className="text-3xl mb-2">{c.flagEmoji}</div>
+                <div className="mb-2">
+                  <CountryFlag code={c.code} name={c.name} className="h-8 w-12 rounded-md" />
+                </div>
                 <div className="font-semibold text-slate-900 group-hover:text-trivia-700 transition-colors">
                   {c.name}
                 </div>

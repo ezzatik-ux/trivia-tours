@@ -16,7 +16,6 @@ export async function getCountriesWithProductCounts() {
       id: countries.id,
       code: countries.code,
       name: countries.name,
-      flagEmoji: countries.flagEmoji,
       sortOrder: countries.sortOrder,
       productCount: sql<number>`COALESCE(COUNT(${products.id})::int, 0)`.as("product_count"),
     })
@@ -116,7 +115,7 @@ export async function searchProducts(filters: BrowseFilters) {
       durationHours: products.durationHours,
       countryId: products.countryId,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       coverImage: sql<string | null>`(
         SELECT url FROM product_images
         WHERE product_images.product_id = ${products.id}

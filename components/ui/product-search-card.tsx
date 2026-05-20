@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Image as ImageIcon, Clock } from "lucide-react";
 import { ProductTypeBadge } from "./product-type-badge";
+import { CountryFlag } from "./country-flag";
 
 type Props = {
   id: string;
@@ -9,7 +10,7 @@ type Props = {
   type: "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER";
   durationHours: string | null;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   coverImage: string | null;
   fromPrice: string | null;
 };
@@ -21,7 +22,7 @@ export function ProductSearchCard({
   type,
   durationHours,
   countryName,
-  countryFlag,
+  countryCode,
   coverImage,
   fromPrice,
 }: Props) {
@@ -50,9 +51,9 @@ export function ProductSearchCard({
         </div>
 
         {/* Country bottom-left */}
-        {countryFlag && countryName && (
+        {countryCode && countryName && (
           <div className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-full text-xs font-medium text-slate-700 shadow-sm">
-            <span>{countryFlag}</span>
+            <CountryFlag code={countryCode} name={countryName} />
             <span>{countryName}</span>
           </div>
         )}

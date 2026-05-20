@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CheckCircle2, Calendar, User, Hotel as HotelIcon, ArrowRight, Clock, MapPin } from "lucide-react";
 import { requireAuth } from "@/lib/auth-utils";
 import { getHotelBookingById } from "../../actions";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 export default async function HotelBookingConfirmationPage({
   params,
@@ -61,7 +62,10 @@ export default async function HotelBookingConfirmationPage({
           )}
           <div className="flex items-center gap-1.5 text-sm text-slate-600 mt-1">
             <MapPin className="w-3.5 h-3.5 text-slate-400" />
-            {booking.countryFlag} {booking.countryName}
+            {booking.countryCode && (
+              <CountryFlag code={booking.countryCode} name={booking.countryName} />
+            )}
+            <span>{booking.countryName}</span>
           </div>
         </Field>
 

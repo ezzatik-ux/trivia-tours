@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle, User, Phone, Mail, MapPin, Clock, FileText } from "lucide-react";
 import { createBooking, type CreateBookingInput } from "../actions";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 type QuoteData = {
   productId: string;
@@ -22,7 +23,7 @@ type ProductInfo = {
   name: string;
   type: string;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
 };
 
 type Props = {
@@ -281,8 +282,11 @@ export function BookingForm({ quote, product }: Props) {
                 </p>
                 <p className="font-semibold text-slate-900">{product.name}</p>
                 {product.countryName && (
-                  <p className="text-sm text-slate-600 mt-0.5">
-                    {product.countryFlag} {product.countryName}
+                  <p className="inline-flex items-center gap-1.5 text-sm text-slate-600 mt-0.5">
+                    {product.countryCode && (
+                      <CountryFlag code={product.countryCode} name={product.countryName} />
+                    )}
+                    {product.countryName}
                   </p>
                 )}
               </div>

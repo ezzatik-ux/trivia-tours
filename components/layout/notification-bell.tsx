@@ -83,7 +83,7 @@ export function NotificationBell({ currentUserId }: Props) {
           const data = payload.new as { title?: string; message?: string };
           new Notification(data.title || "New notification", {
             body: data.message || "",
-            icon: "/favicon.ico",
+            icon: "/web-app-manifest-192x192.png",
           });
         }
       }

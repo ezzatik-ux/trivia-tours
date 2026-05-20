@@ -62,8 +62,8 @@ export async function getCountriesWithHotels() {
   const rows = await db
     .select({
       id: countries.id,
+      code: countries.code,
       name: countries.name,
-      flagEmoji: countries.flagEmoji,
       hotelCount: sql<number>`COUNT(${hotels.id})::int`,
     })
     .from(countries)
@@ -72,7 +72,7 @@ export async function getCountriesWithHotels() {
       and(eq(hotels.countryId, countries.id), eq(hotels.status, "ACTIVE"))
     )
     .where(eq(countries.isActive, true))
-    .groupBy(countries.id, countries.name, countries.flagEmoji, countries.sortOrder)
+    .groupBy(countries.id, countries.code, countries.name, countries.sortOrder)
     .orderBy(countries.sortOrder);
 
   return rows.filter((r) => r.hotelCount > 0);
@@ -105,7 +105,7 @@ export async function searchHotels(params: HotelSearchParams) {
       amenities: hotels.amenities,
       countryId: hotels.countryId,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       coverImage: sql<string | null>`(
         SELECT url FROM ${hotelImages}
         WHERE ${hotelImages.hotelId} = ${hotels.id}
@@ -209,7 +209,7 @@ export async function getHotelDetailForSales(
       cancellationPolicy: hotels.cancellationPolicy,
       importantInfo: hotels.importantInfo,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
     })
     .from(hotels)
     .leftJoin(countries, eq(hotels.countryId, countries.id))
@@ -379,7 +379,7 @@ export async function getHotelBookingById(id: string) {
       hotelBrand: hotels.brand,
       roomTypeName: hotelRoomTypes.name,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       createdAt: hotelBookings.createdAt,
     })
     .from(hotelBookings)

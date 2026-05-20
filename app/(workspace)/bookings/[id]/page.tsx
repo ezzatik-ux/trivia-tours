@@ -14,6 +14,7 @@ import {
 import { requireAuth } from "@/lib/auth-utils";
 import { getBookingById } from "../actions";
 import { ProductTypeBadge } from "@/components/ui/product-type-badge";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 const statusColors: Record<string, string> = {
   NEW: "bg-blue-100 text-blue-700 border-blue-200",
@@ -52,7 +53,7 @@ export default async function BookingDetailPage({
 
   if (!data) notFound();
 
-  const { booking, productName, productType, countryName, countryFlag } = data;
+  const { booking, productName, productType, countryName, countryCode } = data;
   const justCreated = created === "1";
 
   return (
@@ -90,9 +91,9 @@ export default async function BookingDetailPage({
                   type={productType as "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER"}
                 />
               )}
-              {countryFlag && (
-                <span className="text-sm text-slate-600">
-                  {countryFlag} {countryName}
+              {countryCode && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+                  <CountryFlag code={countryCode} name={countryName} /> {countryName}
                 </span>
               )}
             </div>

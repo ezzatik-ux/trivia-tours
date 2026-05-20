@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Compass, MapPin, Activity, Car } from "lucide-react";
 import { ListEditor } from "@/components/ui/list-editor";
 import { ProductImageManager, type ProductImage } from "@/components/ui/product-image-manager";
+import { countryFlagEmoji } from "@/components/ui/country-flag";
 import { createProduct, updateProduct, type ProductInput } from "./actions";
 
 type ProductType = "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER";
@@ -12,8 +13,8 @@ type ProductStatus = "DRAFT" | "ACTIVE" | "INACTIVE";
 
 type Country = {
   id: string;
+  code: string | null;
   name: string;
-  flagEmoji: string | null;
 };
 
 type Props = {
@@ -209,7 +210,7 @@ export function ProductForm({ mode, productId, countries, initialData }: Props) 
               <option value="">-- Select Country --</option>
               {countries.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.flagEmoji} {c.name}
+                  {countryFlagEmoji(c.code)} {c.name}
                 </option>
               ))}
             </select>

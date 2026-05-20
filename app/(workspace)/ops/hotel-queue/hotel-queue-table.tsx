@@ -10,6 +10,7 @@ import {
   Clock,
 } from "lucide-react";
 import { assignHotelBookingToSelf } from "./actions";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 type Booking = {
   id: string;
@@ -27,7 +28,7 @@ type Booking = {
   hotelName: string | null;
   hotelBrand: string | null;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   roomTypeName: string | null;
   salesAgentName: string | null;
   assignedOpsName: string | null;
@@ -200,7 +201,8 @@ export function HotelQueueTable({ bookings, currentUserId }: Props) {
             </p>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[800px]">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-wider">
@@ -250,8 +252,11 @@ export function HotelQueueTable({ bookings, currentUserId }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-medium text-slate-900 line-clamp-1">{b.hotelName}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">
-                        {b.countryFlag} {b.roomTypeName}
+                      <div className="inline-flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                        {b.countryCode && (
+                          <CountryFlag code={b.countryCode} name={b.countryName} />
+                        )}
+                        {b.roomTypeName}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-700">
@@ -309,6 +314,7 @@ export function HotelQueueTable({ bookings, currentUserId }: Props) {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </>

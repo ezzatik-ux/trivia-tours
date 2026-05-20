@@ -93,6 +93,11 @@ body {
   }
 }
 
+/* === iOS SAFE-AREA UTILITIES === */
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
 /* === SMOOTH ANIMATIONS === */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }

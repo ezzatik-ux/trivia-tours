@@ -75,7 +75,7 @@ export default async function NewBookingPage({
           name: product.name,
           type: product.type,
           countryName: product.countryName,
-          countryFlag: product.countryFlag,
+          countryCode: product.countryCode,
         }}
       />
     </div>

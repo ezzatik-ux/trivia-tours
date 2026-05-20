@@ -17,7 +17,7 @@ type Product = {
   durationHours: string | null;
   countryId: string;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   coverImage: string | null;
   fromPrice: string | null;
 };

@@ -30,7 +30,7 @@ export type OpsBooking = {
   salesAgentName: string | null;
   productName: string | null;
   productType: "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER" | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   countryName: string | null;
   supplierRef: string | null;
 };
@@ -70,7 +70,7 @@ export async function getOpsQueue() {
       salesAgentName: salesUser,
       productName: products.name,
       productType: products.type,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       countryName: countries.name,
       supplierRef: bookings.supplierRef,
     })

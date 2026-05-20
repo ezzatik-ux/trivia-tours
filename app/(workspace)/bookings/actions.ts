@@ -9,6 +9,9 @@ import {
   countries,
   users,
   notifications,
+  hotelBookings,
+  hotels as hotelsTable,
+  hotelRoomTypes,
 } from "@/lib/db/schema";
 import { eq, desc, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -51,7 +54,7 @@ export async function getProductForBooking(productId: string) {
       name: products.name,
       countryId: products.countryId,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       durationHours: products.durationHours,
     })
     .from(products)
@@ -209,7 +212,7 @@ export async function getMyBookings() {
       createdAt: bookings.createdAt,
       productName: products.name,
       productType: products.type,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       countryName: countries.name,
     })
     .from(bookings)
@@ -233,7 +236,7 @@ export async function getBookingById(id: string) {
       productName: products.name,
       productType: products.type,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
     })
     .from(bookings)
     .leftJoin(products, eq(bookings.productId, products.id))
@@ -242,4 +245,32 @@ export async function getBookingById(id: string) {
     .limit(1);
 
   return result[0] ?? null;
+}
+
+// ─── GET HOTEL BOOKINGS FOR MY BOOKINGS PAGE ───
+
+export async function getMyHotelBookings() {
+  const user = await requireAuth();
+
+  return db
+    .select({
+      id: hotelBookings.id,
+      bookingNo: hotelBookings.bookingNo,
+      customerName: hotelBookings.customerName,
+      checkIn: hotelBookings.checkIn,
+      checkOut: hotelBookings.checkOut,
+      nights: hotelBookings.nights,
+      totalPrice: hotelBookings.totalPrice,
+      status: hotelBookings.status,
+      createdAt: hotelBookings.createdAt,
+      hotelName: hotelsTable.name,
+      countryCode: countries.code,
+      roomTypeName: hotelRoomTypes.name,
+    })
+    .from(hotelBookings)
+    .leftJoin(hotelsTable, eq(hotelBookings.hotelId, hotelsTable.id))
+    .leftJoin(countries, eq(hotelsTable.countryId, countries.id))
+    .leftJoin(hotelRoomTypes, eq(hotelBookings.roomTypeId, hotelRoomTypes.id))
+    .where(eq(hotelBookings.salesAgentId, user.id))
+    .orderBy(desc(hotelBookings.createdAt));
 }

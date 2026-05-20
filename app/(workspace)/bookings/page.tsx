@@ -1,22 +1,28 @@
 import { requireAuth } from "@/lib/auth-utils";
-import { getMyBookings } from "./actions";
-import { BookingsTable } from "./bookings-table";
+import { getMyBookings, getMyHotelBookings } from "./actions";
+import { MyBookingsTabs } from "./my-bookings-tabs";
 
-export default async function BookingsPage() {
+export default async function MyBookingsPage() {
   await requireAuth();
 
-  const bookings = await getMyBookings();
+  const [tourBookings, hotelBookingsData] = await Promise.all([
+    getMyBookings(),
+    getMyHotelBookings(),
+  ]);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">My Bookings</h1>
         <p className="text-slate-500 mt-1">
-          Track and manage all your bookings
+          All your tour and hotel reservations in one place
         </p>
       </div>
 
-      <BookingsTable bookings={bookings} />
+      <MyBookingsTabs
+        tourBookings={tourBookings}
+        hotelBookings={hotelBookingsData}
+      />
     </div>
   );
 }

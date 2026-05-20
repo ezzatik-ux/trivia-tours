@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { MapPin, Hotel as HotelIcon, ArrowRight } from "lucide-react";
 import { StarRating } from "@/components/ui/star-rating";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 type Hotel = {
   id: string;
@@ -12,7 +13,7 @@ type Hotel = {
   shortDesc: string | null;
   amenities: string[] | null;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   coverImage: string | null;
   minPrice: number | null;
 };
@@ -65,8 +66,11 @@ export function HotelCard({ hotel, searchParams, nights }: Props) {
           {/* Location */}
           <div className="flex items-center gap-1.5 text-sm text-slate-600 mb-3">
             <MapPin className="w-3.5 h-3.5 text-slate-400" />
-            <span>
-              {hotel.countryFlag} {hotel.countryName}
+            <span className="inline-flex items-center gap-1.5">
+              {hotel.countryCode && (
+                <CountryFlag code={hotel.countryCode} name={hotel.countryName} />
+              )}
+              {hotel.countryName}
             </span>
           </div>
 

@@ -8,6 +8,7 @@ import { countries } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { ProductTypeBadge } from "@/components/ui/product-type-badge";
 import { ImageGallery } from "@/components/ui/image-gallery";
+import { CountryFlag } from "@/components/ui/country-flag";
 import { QuotePanel } from "./quote-panel";
 
 export default async function ProductDetailPage({
@@ -45,8 +46,9 @@ export default async function ProductDetailPage({
         <div className="flex items-center gap-2 mb-2">
           <ProductTypeBadge type={product.type} />
           {country && (
-            <span className="inline-flex items-center gap-1 text-sm text-slate-600">
-              {country.flagEmoji} {country.name}
+            <span className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+              <CountryFlag code={country.code} name={country.name} />
+              {country.name}
             </span>
           )}
         </div>

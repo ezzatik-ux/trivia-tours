@@ -15,6 +15,7 @@ import {
   Hotel as HotelIcon,
 } from "lucide-react";
 import { StarRating } from "@/components/ui/star-rating";
+import { CountryFlag } from "@/components/ui/country-flag";
 import { BookingModal } from "./booking-modal";
 
 type RoomTypeWithRate = {
@@ -63,7 +64,7 @@ type HotelDetail = {
   cancellationPolicy: string | null;
   importantInfo: string | null;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   images: Array<{ id: string; url: string; caption: string | null; isCover: boolean }>;
   rooms: RoomTypeWithRate[];
 };
@@ -157,39 +158,68 @@ export function HotelDetailClient({ hotel, checkIn, checkOut, pax }: Props) {
           <h1 className="text-3xl font-bold text-slate-900">{hotel.name}</h1>
           <div className="flex items-center gap-1.5 text-slate-600 mt-2">
             <MapPin className="w-4 h-4 text-slate-400" />
-            {hotel.countryFlag} {hotel.countryName}
+            {hotel.countryCode && (
+              <CountryFlag code={hotel.countryCode} name={hotel.countryName} />
+            )}
+            <span>{hotel.countryName}</span>
             {hotel.address && <span className="text-slate-400">· {hotel.address}</span>}
           </div>
         </div>
 
         {/* Image Gallery */}
         {galleryImages.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 h-96">
-            {/* Main image */}
-            <div className="md:col-span-3 rounded-2xl overflow-hidden bg-slate-100">
-              <img
-                src={galleryImages[selectedImageIdx]?.url ?? coverImage?.url}
-                alt={hotel.name}
-                className="w-full h-full object-cover"
-              />
+          <div>
+            {/* Desktop: main image + 3 thumbnails grid */}
+            <div className="hidden md:grid md:grid-cols-4 gap-3 h-96">
+              <div className="md:col-span-3 rounded-2xl overflow-hidden bg-slate-100">
+                <img
+                  src={galleryImages[selectedImageIdx]?.url ?? coverImage?.url}
+                  alt={hotel.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {galleryImages.length > 1 && (
+                <div className="grid grid-rows-3 gap-3">
+                  {galleryImages.slice(0, 3).map((img, idx) => (
+                    <button
+                      key={img.id}
+                      onClick={() => setSelectedImageIdx(idx)}
+                      className={`rounded-xl overflow-hidden ${
+                        selectedImageIdx === idx ? "ring-2 ring-trivia-500" : ""
+                      }`}
+                    >
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Thumbnails */}
-            {galleryImages.length > 1 && (
-              <div className="hidden md:grid grid-rows-3 gap-3">
-                {galleryImages.slice(0, 3).map((img, idx) => (
-                  <button
-                    key={img.id}
-                    onClick={() => setSelectedImageIdx(idx)}
-                    className={`rounded-xl overflow-hidden ${
-                      selectedImageIdx === idx ? "ring-2 ring-trivia-500" : ""
-                    }`}
-                  >
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
+            {/* Mobile: main image + horizontal scrolling thumbnails */}
+            <div className="md:hidden">
+              <div className="h-64 rounded-2xl overflow-hidden bg-slate-100">
+                <img
+                  src={galleryImages[selectedImageIdx]?.url ?? coverImage?.url}
+                  alt={hotel.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            )}
+              {galleryImages.length > 1 && (
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+                  {galleryImages.map((img, idx) => (
+                    <button
+                      key={img.id}
+                      onClick={() => setSelectedImageIdx(idx)}
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden snap-start ${
+                        selectedImageIdx === idx ? "ring-2 ring-trivia-500" : ""
+                      }`}
+                    >
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

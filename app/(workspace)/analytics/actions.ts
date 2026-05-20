@@ -183,7 +183,7 @@ export async function getTopCountries(range: DateRange) {
     .select({
       countryId: products.countryId,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       bookings: sql<number>`COUNT(*)::int`.as("bookings"),
       revenue: sql<string>`COALESCE(SUM(${bookings.totalPrice}), 0)::text`.as("revenue"),
     })
@@ -191,13 +191,13 @@ export async function getTopCountries(range: DateRange) {
     .leftJoin(products, eq(bookings.productId, products.id))
     .leftJoin(countries, eq(products.countryId, countries.id))
     .where(and(...conditions))
-    .groupBy(products.countryId, countries.name, countries.flagEmoji)
+    .groupBy(products.countryId, countries.name, countries.code)
     .orderBy(desc(sql`COALESCE(SUM(${bookings.totalPrice}), 0)`))
     .limit(10);
 
   return result.map((r) => ({
     countryName: r.countryName,
-    countryFlag: r.countryFlag,
+    countryCode: r.countryCode,
     bookings: r.bookings,
     revenue: parseFloat(r.revenue),
   }));
@@ -250,7 +250,7 @@ export async function getTopProducts(range: DateRange) {
       productId: bookings.productId,
       productName: products.name,
       productType: products.type,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       bookings: sql<number>`COUNT(*)::int`.as("bookings"),
       revenue: sql<string>`COALESCE(SUM(${bookings.totalPrice}), 0)::text`.as("revenue"),
     })
@@ -258,14 +258,14 @@ export async function getTopProducts(range: DateRange) {
     .leftJoin(products, eq(bookings.productId, products.id))
     .leftJoin(countries, eq(products.countryId, countries.id))
     .where(and(...conditions))
-    .groupBy(bookings.productId, products.name, products.type, countries.flagEmoji)
+    .groupBy(bookings.productId, products.name, products.type, countries.code)
     .orderBy(desc(sql`COUNT(*)`))
     .limit(10);
 
   return result.map((r) => ({
     productName: r.productName,
     productType: r.productType,
-    countryFlag: r.countryFlag,
+    countryCode: r.countryCode,
     bookings: r.bookings,
     revenue: parseFloat(r.revenue),
   }));
@@ -292,7 +292,7 @@ export async function getUpcomingTravel() {
       status: bookings.status,
       productName: products.name,
       productType: products.type,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
     })
     .from(bookings)
     .leftJoin(products, eq(bookings.productId, products.id))

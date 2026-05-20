@@ -13,6 +13,7 @@ import {
 import { BookingStatusBadge } from "@/components/ui/booking-status-badge";
 import { UrgencyBadge } from "@/components/ui/urgency-badge";
 import { ProductTypeBadge } from "@/components/ui/product-type-badge";
+import { CountryFlag } from "@/components/ui/country-flag";
 import { assignToMe, unassign, type OpsBooking } from "./actions";
 
 type Props = {
@@ -213,8 +214,8 @@ export function QueueTable({ bookings, currentUserId }: Props) {
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           {b.productType && <ProductTypeBadge type={b.productType} />}
-                          {b.countryFlag && (
-                            <span className="text-xs text-slate-500">{b.countryFlag}</span>
+                          {b.countryCode && (
+                            <CountryFlag code={b.countryCode} name={b.countryName} />
                           )}
                         </div>
                       </td>

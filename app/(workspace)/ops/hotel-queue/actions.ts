@@ -50,7 +50,7 @@ export async function getHotelBookingsQueue() {
       hotelName: hotels.name,
       hotelBrand: hotels.brand,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       roomTypeName: hotelRoomTypes.name,
       salesAgentName: users.name,
       assignedOpsName: sql<string | null>`(
@@ -113,7 +113,7 @@ export async function getHotelBookingDetail(id: string) {
       hotelContactPhone: hotels.contactPhone,
       hotelCancellationPolicy: hotels.cancellationPolicy,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       // Room
       roomTypeName: hotelRoomTypes.name,
       roomBedConfig: hotelRoomTypes.bedConfig,

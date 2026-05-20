@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { CountryFlag } from "./country-flag";
 
 type Props = {
   countryId: string;
   name: string;
-  flagEmoji: string | null;
+  code: string | null;
   productCount: number;
 };
 
-export function CountryCard({ countryId, name, flagEmoji, productCount }: Props) {
+export function CountryCard({ countryId, name, code, productCount }: Props) {
   const isAvailable = productCount > 0;
 
   return (
@@ -26,8 +27,12 @@ export function CountryCard({ countryId, name, flagEmoji, productCount }: Props)
     >
       <div className="flex flex-col items-center text-center">
         {/* Flag */}
-        <div className="text-5xl mb-3 transition-transform group-hover:scale-110">
-          {flagEmoji || "🌍"}
+        <div className="mb-3 transition-transform group-hover:scale-110">
+          <CountryFlag
+            code={code}
+            name={name}
+            className="h-12 w-[4.5rem] rounded-md ring-1 ring-slate-200"
+          />
         </div>
 
         {/* Name */}

@@ -23,7 +23,7 @@ export async function getProducts() {
       status: products.status,
       countryId: products.countryId,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
       coverImage: sql<string | null>`(
@@ -47,8 +47,8 @@ export async function getCountriesForFilter() {
   return db
     .select({
       id: countries.id,
+      code: countries.code,
       name: countries.name,
-      flagEmoji: countries.flagEmoji,
     })
     .from(countries)
     .where(eq(countries.isActive, true))

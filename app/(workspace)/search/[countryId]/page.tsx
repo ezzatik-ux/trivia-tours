@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { requireAuth } from "@/lib/auth-utils";
 import { searchProducts, getCountryById } from "../actions";
 import { ProductBrowse } from "../product-browse";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 export default async function CountryProductsPage({
   params,
@@ -33,7 +34,11 @@ export default async function CountryProductsPage({
 
       <div>
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-          <span className="text-4xl">{country.flagEmoji}</span>
+          <CountryFlag
+            code={country.code}
+            name={country.name}
+            className="h-8 w-12 rounded-md ring-1 ring-slate-200"
+          />
           {country.name}
         </h1>
         <p className="text-slate-500 mt-1">

@@ -41,7 +41,7 @@ export async function GET(
         productCancellation: products.cancellationPolicy,
         productImportant: products.importantInfo,
         countryName: countries.name,
-        countryFlag: countries.flagEmoji,
+        countryCode: countries.code,
         supplierName: suppliers.name,
         supplierPhone: suppliers.contactPhone,
       })
@@ -81,7 +81,7 @@ export async function GET(
       productName: data.productName ?? "Tour Product",
       productType: data.productType ?? "Tour",
       countryName: data.countryName,
-      countryFlag: data.countryFlag,
+      countryCode: data.countryCode,
       durationHours:
         data.productDuration != null ? String(data.productDuration) : null,
       coverImage: coverImg?.url ?? null,

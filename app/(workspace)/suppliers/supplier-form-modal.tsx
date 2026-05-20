@@ -3,11 +3,12 @@
 import { useState, useTransition } from "react";
 import { X, Loader2 } from "lucide-react";
 import { createSupplier, updateSupplier, type SupplierInput } from "./actions";
+import { countryFlagEmoji } from "@/components/ui/country-flag";
 
 type Country = {
   id: string;
+  code: string | null;
   name: string;
-  flagEmoji: string | null;
 };
 
 type Supplier = SupplierInput & {
@@ -117,7 +118,7 @@ export function SupplierFormModal({
               <option value="">-- Select Country --</option>
               {countries.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.flagEmoji} {c.name}
+                  {countryFlagEmoji(c.code)} {c.name}
                 </option>
               ))}
             </select>

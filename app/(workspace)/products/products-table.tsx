@@ -5,12 +5,13 @@ import Link from "next/link";
 import { Edit2, Plus, Search, Package2, Trash2, Image as ImageIcon } from "lucide-react";
 import { ProductTypeBadge } from "@/components/ui/product-type-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { CountryFlag, countryFlagEmoji } from "@/components/ui/country-flag";
 import { cycleProductStatus, deleteProduct } from "./actions";
 
 type Country = {
   id: string;
+  code: string | null;
   name: string;
-  flagEmoji: string | null;
 };
 
 type Product = {
@@ -23,7 +24,7 @@ type Product = {
   status: "DRAFT" | "ACTIVE" | "INACTIVE";
   countryId: string;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   coverImage: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -149,7 +150,7 @@ export function ProductsTable({ products, countries }: Props) {
             <option value="ALL">All Countries</option>
             {countries.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.flagEmoji} {c.name}
+                {countryFlagEmoji(c.code)} {c.name}
               </option>
             ))}
           </select>
@@ -273,9 +274,10 @@ export function ProductsTable({ products, countries }: Props) {
                     <ProductTypeBadge type={product.type} />
                   </td>
                   <td className="px-6 py-3 text-slate-700">
-                    {product.countryFlag && product.countryName ? (
-                      <span>
-                        {product.countryFlag} {product.countryName}
+                    {product.countryCode && product.countryName ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <CountryFlag code={product.countryCode} name={product.countryName} />
+                        {product.countryName}
                       </span>
                     ) : (
                       <span className="text-slate-400">—</span>

@@ -28,7 +28,7 @@ export async function getSuppliers() {
       name: suppliers.name,
       countryId: suppliers.countryId,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       contactName: suppliers.contactName,
       contactEmail: suppliers.contactEmail,
       contactPhone: suppliers.contactPhone,
@@ -51,8 +51,8 @@ export async function getCountries() {
   return db
     .select({
       id: countries.id,
+      code: countries.code,
       name: countries.name,
-      flagEmoji: countries.flagEmoji,
     })
     .from(countries)
     .where(eq(countries.isActive, true))

@@ -57,7 +57,7 @@ export async function getHotels() {
       status: hotels.status,
       countryId: hotels.countryId,
       countryName: countries.name,
-      countryFlag: countries.flagEmoji,
+      countryCode: countries.code,
       createdAt: hotels.createdAt,
       coverImage: sql<string | null>`(
         SELECT url FROM ${hotelImages}
@@ -101,8 +101,8 @@ export async function getCountriesForHotels() {
   return db
     .select({
       id: countries.id,
+      code: countries.code,
       name: countries.name,
-      flagEmoji: countries.flagEmoji,
     })
     .from(countries)
     .where(eq(countries.isActive, true))

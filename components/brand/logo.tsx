@@ -22,56 +22,37 @@ export function Logo({ variant = "full", size = "md", className }: Props) {
       <div
         className={cn(
           s.mark,
-          "rounded-xl bg-trivia-500 flex items-center justify-center shadow-sm",
-          "ring-2 ring-trivia-100",
+          "rounded-xl flex items-center justify-center bg-white shadow-sm overflow-hidden ring-2 ring-trivia-100",
           className
         )}
       >
-        <svg
-          viewBox="0 0 32 32"
-          fill="none"
-          className="w-1/2 h-1/2 text-white"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M6 6h20v5h-7.5v15h-5V11H6V6z"
-            fill="currentColor"
-            strokeWidth="0.5"
-            stroke="currentColor"
-          />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/favicon-96x96.png"
+          alt="Trivia"
+          className="w-full h-full object-contain p-1"
+        />
       </div>
     );
   }
 
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      {/* Mark */}
       <div
         className={cn(
           s.mark,
-          "rounded-xl flex items-center justify-center shadow-sm flex-shrink-0",
-          isWhite
-            ? "bg-white ring-2 ring-white/20"
-            : "bg-trivia-500 ring-2 ring-trivia-100"
+          "rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 overflow-hidden bg-white",
+          isWhite ? "ring-2 ring-white/20" : "ring-2 ring-trivia-100"
         )}
       >
-        <svg
-          viewBox="0 0 32 32"
-          fill="none"
-          className={cn("w-1/2 h-1/2", isWhite ? "text-trivia-500" : "text-white")}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M6 6h20v5h-7.5v15h-5V11H6V6z"
-            fill="currentColor"
-            strokeWidth="0.5"
-            stroke="currentColor"
-          />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/favicon-96x96.png"
+          alt="Trivia"
+          className="w-full h-full object-contain p-1"
+        />
       </div>
 
-      {/* Wordmark */}
       <div className="flex flex-col leading-none">
         <span
           className={cn(

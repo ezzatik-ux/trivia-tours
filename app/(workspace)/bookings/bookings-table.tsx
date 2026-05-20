@@ -12,6 +12,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { ProductTypeBadge } from "@/components/ui/product-type-badge";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 type Booking = {
   id: string;
@@ -26,7 +27,7 @@ type Booking = {
   createdAt: Date;
   productName: string | null;
   productType: "TOUR" | "EXCURSION" | "ACTIVITY" | "TRANSFER" | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   countryName: string | null;
 };
 
@@ -275,9 +276,10 @@ export function BookingsTable({ bookings }: Props) {
                         {booking.productType && (
                           <ProductTypeBadge type={booking.productType} />
                         )}
-                        {booking.countryFlag && (
-                          <span className="text-xs text-slate-500">
-                            {booking.countryFlag} {booking.countryName}
+                        {booking.countryCode && (
+                          <span className="inline-flex items-center gap-1 text-xs text-slate-500">
+                            <CountryFlag code={booking.countryCode} name={booking.countryName} />
+                            {booking.countryName}
                           </span>
                         )}
                       </div>

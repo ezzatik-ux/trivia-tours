@@ -13,12 +13,13 @@ import {
 } from "lucide-react";
 import { StarRating } from "@/components/ui/star-rating";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { CountryFlag, countryFlagEmoji } from "@/components/ui/country-flag";
 import { cycleHotelStatus, deleteHotel } from "./actions";
 
 type Country = {
   id: string;
+  code: string | null;
   name: string;
-  flagEmoji: string | null;
 };
 
 type Hotel = {
@@ -31,7 +32,7 @@ type Hotel = {
   status: "DRAFT" | "ACTIVE" | "INACTIVE";
   countryId: string;
   countryName: string | null;
-  countryFlag: string | null;
+  countryCode: string | null;
   coverImage: string | null;
   createdAt: Date;
 };
@@ -126,7 +127,7 @@ export function HotelsTable({ hotels, countries }: Props) {
             <option value="ALL">All Countries</option>
             {countries.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.flagEmoji} {c.name}
+                {countryFlagEmoji(c.code)} {c.name}
               </option>
             ))}
           </select>
@@ -246,7 +247,10 @@ export function HotelsTable({ hotels, countries }: Props) {
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-1.5 text-slate-700">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{hotel.countryFlag} {hotel.countryName}</span>
+                      {hotel.countryCode && (
+                        <CountryFlag code={hotel.countryCode} name={hotel.countryName} />
+                      )}
+                      <span>{hotel.countryName}</span>
                     </div>
                   </td>
                   <td className="px-6 py-3">

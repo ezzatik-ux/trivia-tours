@@ -21,6 +21,7 @@ import { StatusActions } from "./status-actions";
 import { EmailTemplate } from "./email-template";
 import { ConfirmationRefs } from "./confirmation-refs";
 import { StatusHistory } from "./status-history";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 const STATUS_BADGE_COLORS: Record<string, string> = {
   NEW: "bg-red-100 text-red-700",
@@ -135,7 +136,10 @@ export default async function HotelBookingDetailPage({
             )}
             <div className="flex items-center gap-1.5 mt-2 text-sm text-slate-600">
               <MapPin className="w-3.5 h-3.5 text-slate-400" />
-              {booking.countryFlag} {booking.countryName}
+              {booking.countryCode && (
+                <CountryFlag code={booking.countryCode} name={booking.countryName} />
+              )}
+              <span>{booking.countryName}</span>
             </div>
             {booking.hotelAddress && (
               <p className="text-xs text-slate-500 mt-1">{booking.hotelAddress}</p>
