@@ -32,9 +32,15 @@ type Props = {
   hotels: Hotel[];
   searchParams: {
     destination?: string;
+    query?: string;
     checkIn?: string;
     checkOut?: string;
     pax?: string;
+    adults?: string;
+    children?: string;
+    rooms?: string;
+    childAges?: string;
+    starRatings?: string;
   };
 };
 
@@ -176,8 +182,12 @@ export function ResultsClient({ hotels, searchParams }: Props) {
           {searchParams.checkIn && searchParams.checkOut && (
             <p className="text-sm text-slate-500 mt-1">
               {formatDate(searchParams.checkIn)} → {formatDate(searchParams.checkOut)} ·{" "}
-              {nights} {nights === 1 ? "night" : "nights"} · {searchParams.pax || 2}{" "}
-              {parseInt(searchParams.pax || "2") === 1 ? "guest" : "guests"}
+              {nights} {nights === 1 ? "night" : "nights"} ·{" "}
+              {searchParams.adults || searchParams.pax || 2} adults
+              {searchParams.children && parseInt(searchParams.children) > 0
+                ? `, ${searchParams.children} children`
+                : ""}
+              {searchParams.rooms ? ` · ${searchParams.rooms} room${parseInt(searchParams.rooms) !== 1 ? "s" : ""}` : ""}
             </p>
           )}
         </div>

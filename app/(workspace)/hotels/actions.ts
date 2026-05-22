@@ -12,7 +12,7 @@ import {
   notifications,
   users,
 } from "@/lib/db/schema";
-import { eq, and, gte, lte, sql, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, sql, inArray, or, ilike } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth-utils";
 
@@ -20,6 +20,7 @@ import { requireAuth } from "@/lib/auth-utils";
 
 export type HotelSearchParams = {
   destination?: string; // Country ID or "ALL"
+  query?: string; // free-text: hotel name or address/city
   checkIn?: string;
   checkOut?: string;
   pax?: number;
@@ -92,6 +93,14 @@ export async function searchHotels(params: HotelSearchParams) {
 
   if (params.starRatings && params.starRatings.length > 0) {
     conditions.push(inArray(hotels.starRating, params.starRatings));
+  }
+
+  if (params.query && params.query.trim()) {
+    const q = `%${params.query.trim()}%`;
+    const nameMatch = ilike(hotels.name, q);
+    const addressMatch = ilike(hotels.address, q);
+    const orClause = or(nameMatch, addressMatch);
+    if (orClause) conditions.push(orClause);
   }
 
   const allHotels = await db
