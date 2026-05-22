@@ -73,11 +73,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: eq(users.id, user.id),
         });
 
-        if (dbUser) {
-          session.user.id = dbUser.id;
-          session.user.role = dbUser.role;
-          session.user.countryScope = dbUser.countryScope ?? [];
+        // Force-invalidate sessions for deleted or deactivated users.
+        // Without this, an admin who clicks "Deactivate" on someone already
+        // signed in would have to wait up to 30 days (maxAge) for the cookie
+        // to expire. With this, the deactivation takes effect on the very
+        // next request since the session callback runs server-side per request.
+        if (!dbUser || !dbUser.isActive) {
+          return { ...session, user: undefined as never };
         }
+
+        session.user.id = dbUser.id;
+        session.user.role = dbUser.role;
+        session.user.countryScope = dbUser.countryScope ?? [];
       }
       return session;
     },
