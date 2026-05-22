@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { X, Loader2, Bed } from "lucide-react";
-import { ListEditor } from "@/components/ui/list-editor";
+import { AmenityPicker } from "@/components/ui/amenity-picker";
+import { ROOM_AMENITIES } from "@/lib/hotel-options";
 import { createRoomType, updateRoomType, type RoomTypeInput } from "./room-types-actions";
 
 type RoomType = RoomTypeInput & { id: string };
@@ -177,13 +178,14 @@ export function RoomTypeModal({ open, onClose, hotelId, existing }: Props) {
             </div>
           </div>
 
-          <ListEditor
-            label="Room Amenities"
-            placeholder="e.g., Private Pool"
-            values={amenities}
-            onChange={setAmenities}
-            disabled={isPending}
-          />
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-3">Room Amenities</label>
+            <AmenityPicker
+              groups={ROOM_AMENITIES}
+              selected={amenities}
+              onChange={setAmenities}
+            />
+          </div>
 
           <div className="pt-3 border-t border-slate-100">
             <label className="flex items-center gap-3 cursor-pointer">

@@ -3,9 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Star, Hotel as HotelIcon } from "lucide-react";
-import { ListEditor } from "@/components/ui/list-editor";
+import { AmenityPicker } from "@/components/ui/amenity-picker";
 import { ProductImageManager, type ProductImage } from "@/components/ui/product-image-manager";
 import { countryFlagEmoji } from "@/components/ui/country-flag";
+import { HOTEL_FACILITIES } from "@/lib/hotel-options";
 import { createHotel, updateHotel, type HotelInput } from "./actions";
 
 type Country = {
@@ -257,13 +258,11 @@ export function HotelForm({ mode, hotelId, countries, initialData }: Props) {
         </div>
       </Section>
 
-      <Section title="Amenities">
-        <ListEditor
-          label="Hotel Amenities"
-          placeholder="e.g., Beach Access"
-          values={amenities}
+      <Section title="Facilities">
+        <AmenityPicker
+          groups={HOTEL_FACILITIES}
+          selected={amenities}
           onChange={setAmenities}
-          disabled={isPending}
         />
       </Section>
 
