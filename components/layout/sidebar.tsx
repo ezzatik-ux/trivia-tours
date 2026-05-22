@@ -237,7 +237,7 @@ export function Sidebar() {
       {/* Footer */}
       <div className="px-5 py-4 border-t border-white/5 flex-shrink-0">
         <p className="text-[10px] uppercase tracking-[0.15em] text-white/40 font-medium">
-          Trivia Tours
+          Trivia Pro
         </p>
         <p className="text-xs text-white/60 mt-1">Powered by Trivia Egypt</p>
       </div>

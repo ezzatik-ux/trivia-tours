@@ -291,9 +291,9 @@ export function HotelVoucherPDF({ booking, qrDataUrl }: Props) {
         <View style={styles.header}>
           <View style={styles.brand}>
             <Text style={styles.brandName}>
-              Trivia <Text style={styles.brandRed}>Tours</Text>
+              Trivia <Text style={styles.brandRed}>Pro</Text>
             </Text>
-            <Text style={styles.brandTag}>Internal Platform</Text>
+            <Text style={styles.brandTag}>Live it, Trivit</Text>
           </View>
           <View style={styles.docType}>
             <Text style={styles.docTypeText}>Document</Text>

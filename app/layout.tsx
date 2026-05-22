@@ -10,20 +10,21 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Trivia Tours",
-    template: "%s · Trivia Tours",
+    default: "Trivia Pro",
+    template: "%s · Trivia Pro",
   },
   description:
-    "Internal sales enablement platform for Trivia Egypt — search, quote, book tours and hotels with confidence.",
-  applicationName: "Trivia Tours",
+    "Trivia Pro — sales enablement platform for Trivia Egypt. Search, quote, and book tours, hotels, and transfers with confidence.",
+  applicationName: "Trivia Pro",
   authors: [{ name: "Trivia Egypt" }],
   generator: "Next.js",
-  keywords: ["travel", "tours", "hotels", "booking", "trivia", "egypt"],
+  keywords: ["travel", "tours", "hotels", "transfers", "booking", "trivia", "egypt"],
   referrer: "origin-when-cross-origin",
   manifest: "/site.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
     ],
     apple: [
@@ -31,16 +32,16 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "Trivia Tours",
-    description: "Internal sales enablement platform for Trivia Egypt",
+    title: "Trivia Pro",
+    description: "Live it, Trivit — sales enablement platform for Trivia Egypt",
     url: "https://trivia-tours.vercel.app",
-    siteName: "Trivia Tours",
+    siteName: "Trivia Pro",
     images: [
       {
         url: "/web-app-manifest-512x512.png",
         width: 512,
         height: 512,
-        alt: "Trivia Tours",
+        alt: "Trivia Pro",
       },
     ],
     locale: "en_US",
@@ -48,17 +49,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Trivia Tours",
-    description: "Internal sales enablement platform for Trivia Egypt",
+    title: "Trivia Pro",
+    description: "Live it, Trivit — sales enablement platform for Trivia Egypt",
     images: ["/web-app-manifest-512x512.png"],
   },
   robots: {
     index: false,
     follow: false,
-    googleBot: {
-      index: false,
-      follow: false,
-    },
+    googleBot: { index: false, follow: false },
   },
 };
 

@@ -305,8 +305,10 @@ export function VoucherTemplate(props: VoucherProps) {
             <View style={styles.brandLogo}>
               <Text>T</Text>
             </View>
-            <Text style={styles.brandName}>Trivia Tours</Text>
-            <Text style={styles.brandTagline}>Egypt · Middle East · Worldwide</Text>
+            <Text style={styles.brandName}>
+              Trivia <Text style={{ color: "#e4242c" }}>Pro</Text>
+            </Text>
+            <Text style={styles.brandTagline}>Live it, Trivit</Text>
           </View>
 
           <View style={styles.voucherSection}>

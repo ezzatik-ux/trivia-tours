@@ -53,6 +53,7 @@ export function Logo({ variant = "full", size = "md", className }: Props) {
         />
       </div>
 
+      {/* Wordmark */}
       <div className="flex flex-col leading-none">
         <span
           className={cn(
@@ -61,16 +62,16 @@ export function Logo({ variant = "full", size = "md", className }: Props) {
             isWhite ? "text-white" : "text-trivia-900"
           )}
         >
-          Trivia <span className="text-trivia-500">Tours</span>
+          Trivia <span className="text-trivia-500">Pro</span>
         </span>
         <span
           className={cn(
             s.tag,
-            "uppercase tracking-[0.15em] font-medium mt-0.5",
+            "tracking-[0.12em] font-medium mt-0.5 italic",
             isWhite ? "text-white/70" : "text-slate-500"
           )}
         >
-          Internal Platform
+          Live it, Trivit
         </span>
       </div>
     </div>

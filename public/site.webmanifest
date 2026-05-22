@@ -1,7 +1,7 @@
 {
-  "name": "Trivia Tours",
+  "name": "Trivia Pro",
   "short_name": "Trivia",
-  "description": "Internal sales enablement platform for Trivia Egypt",
+  "description": "Live it, Trivit — sales enablement platform for Trivia Egypt",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
