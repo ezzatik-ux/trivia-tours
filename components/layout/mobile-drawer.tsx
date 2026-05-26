@@ -12,6 +12,7 @@ import {
   Calendar,
   Users,
   Truck,
+  Car,
   BarChart3,
   Settings,
   Building2,
@@ -48,6 +49,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Search Tours", href: "/search", icon: Search, roles: ["SALES", "ADMIN"] },
       { label: "Search Hotels", href: "/hotels", icon: Hotel, roles: ["SALES", "ADMIN"] },
+      { label: "Search Transfers", href: "/transfers", icon: Car, roles: ["SALES", "OPS", "PRODUCT", "ADMIN"] },
       { label: "My Bookings", href: "/bookings", icon: Calendar, roles: ["SALES", "ADMIN"] },
     ],
   },
@@ -56,6 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Manage Tours", href: "/products", icon: Package2, roles: ["PRODUCT", "ADMIN"] },
       { label: "Manage Hotels", href: "/admin/hotels", icon: Hotel, roles: ["PRODUCT", "ADMIN"] },
+      { label: "Transfers", href: "/admin/transfers", icon: Car, roles: ["OPS", "PRODUCT", "ADMIN"] },
       { label: "Suppliers", href: "/suppliers", icon: Building2, roles: ["PRODUCT", "ADMIN"] },
     ],
   },

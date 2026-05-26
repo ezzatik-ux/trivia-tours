@@ -750,6 +750,8 @@ import {
     "CANCELLED",
   ]);
 
+  export const transferTripTypeEnum = pgEnum("transfer_trip_type", ["ONE_WAY", "ROUND_TRIP"]);
+
   // Named places transfers run between (structured, not free text)
   export const transferLocations = pgTable(
     "transfer_locations",
@@ -849,6 +851,16 @@ import {
       supplierId: uuid("supplier_id").references(() => suppliers.id),
       vehicleType: vehicleTypeEnum("vehicle_type").notNull(),
       numVehicles: integer("num_vehicles").default(1).notNull(),
+      tripType: transferTripTypeEnum("trip_type").default("ONE_WAY").notNull(),
+      // Outbound airport details
+      arrivalTerminal: varchar("arrival_terminal", { length: 20 }),
+      greetingSign: text("greeting_sign"),
+      // Return leg (round trip)
+      returnDate: date("return_date"),
+      returnPickupTime: varchar("return_pickup_time", { length: 10 }),
+      returnFlightNumber: varchar("return_flight_number", { length: 20 }),
+      returnTerminal: varchar("return_terminal", { length: 20 }),
+      returnFlightDeparture: varchar("return_flight_departure", { length: 10 }),
       // Customer
       customerName: text("customer_name").notNull(),
       customerEmail: text("customer_email"),
