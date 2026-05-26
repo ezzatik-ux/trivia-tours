@@ -726,4 +726,206 @@ import {
     opsActions: many(opsActions),
   }));
 
+  /* ============================================================
+     TRANSFERS MODULE (dedicated — per-vehicle, route-based)
+     Separate from generic products/rates (which are per-person).
+  ============================================================ */
+
+  export const transferLocationTypeEnum = pgEnum("transfer_location_type", [
+    "AIRPORT",
+    "HOTEL",
+    "CITY",
+    "ZONE",
+    "LANDMARK",
+    "PORT",
+  ]);
+
+  export const transferBookingStatusEnum = pgEnum("transfer_booking_status", [
+    "NEW",
+    "ACK",
+    "SUPPLIER_CONTACTED",
+    "CONFIRMED",
+    "VOUCHER_ISSUED",
+    "COMPLETED",
+    "CANCELLED",
+  ]);
+
+  // Named places transfers run between (structured, not free text)
+  export const transferLocations = pgTable(
+    "transfer_locations",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      countryId: uuid("country_id")
+        .notNull()
+        .references(() => countries.id),
+      name: text("name").notNull(),
+      type: transferLocationTypeEnum("type").notNull(),
+      cityName: text("city_name"), // freetext city/area label
+      code: varchar("code", { length: 10 }), // e.g. airport IATA "HRG"
+      isActive: boolean("is_active").default(true).notNull(),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      countryIdx: index("transfer_locations_country_idx").on(t.countryId),
+      typeIdx: index("transfer_locations_type_idx").on(t.type),
+    })
+  );
+
+  // A directional route between two locations (A->B separate from B->A)
+  export const transferRoutes = pgTable(
+    "transfer_routes",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      countryId: uuid("country_id")
+        .notNull()
+        .references(() => countries.id),
+      fromLocationId: uuid("from_location_id")
+        .notNull()
+        .references(() => transferLocations.id),
+      toLocationId: uuid("to_location_id")
+        .notNull()
+        .references(() => transferLocations.id),
+      supplierId: uuid("supplier_id").references(() => suppliers.id),
+      estimatedDurationMin: integer("estimated_duration_min"),
+      distanceKm: numeric("distance_km", { precision: 6, scale: 1 }),
+      notes: text("notes"),
+      isActive: boolean("is_active").default(true).notNull(),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+      updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      fromIdx: index("transfer_routes_from_idx").on(t.fromLocationId),
+      toIdx: index("transfer_routes_to_idx").on(t.toLocationId),
+      countryIdx: index("transfer_routes_country_idx").on(t.countryId),
+    })
+  );
+
+  // Per-vehicle rate card for a route. One row per vehicle type.
+  export const transferRates = pgTable(
+    "transfer_rates",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      routeId: uuid("route_id")
+        .notNull()
+        .references(() => transferRoutes.id, { onDelete: "cascade" }),
+      vehicleType: vehicleTypeEnum("vehicle_type").notNull(),
+      maxPax: integer("max_pax").notNull(),
+      maxLuggage: integer("max_luggage"),
+      netPrice: numeric("net_price", { precision: 10, scale: 2 }).notNull(),
+      markupPct: numeric("markup_pct", { precision: 5, scale: 2 }).default("0"),
+      sellPrice: numeric("sell_price", { precision: 10, scale: 2 }).notNull(),
+      currency: text("currency").default("USD"),
+      validFrom: date("valid_from"),
+      validTo: date("valid_to"),
+      isActive: boolean("is_active").default(true).notNull(),
+      createdBy: uuid("created_by").references(() => users.id),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+      updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      routeIdx: index("transfer_rates_route_idx").on(t.routeId),
+      vehicleIdx: index("transfer_rates_vehicle_idx").on(t.vehicleType),
+    })
+  );
+
+  // Transfer bookings (mirrors hotelBookings pattern)
+  export const transferBookings = pgTable(
+    "transfer_bookings",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      bookingNo: text("booking_no").notNull().unique(), // TR-YYMM-NNNNN
+      salesOrderNo: text("sales_order_no").notNull(),
+      invoiceNoOdoo: text("invoice_no_odoo"),
+      salesAgentId: uuid("sales_agent_id")
+        .notNull()
+        .references(() => users.id),
+      assignedOpsId: uuid("assigned_ops_id").references(() => users.id),
+      routeId: uuid("route_id")
+        .notNull()
+        .references(() => transferRoutes.id),
+      rateId: uuid("rate_id")
+        .notNull()
+        .references(() => transferRates.id),
+      supplierId: uuid("supplier_id").references(() => suppliers.id),
+      vehicleType: vehicleTypeEnum("vehicle_type").notNull(),
+      numVehicles: integer("num_vehicles").default(1).notNull(),
+      // Customer
+      customerName: text("customer_name").notNull(),
+      customerEmail: text("customer_email"),
+      customerPhone: text("customer_phone"),
+      customerNationality: text("customer_nationality"),
+      // Trip
+      transferDate: date("transfer_date").notNull(),
+      pickupTime: varchar("pickup_time", { length: 10 }), // "14:30"
+      flightNumber: varchar("flight_number", { length: 20 }),
+      pax: integer("pax").default(1).notNull(),
+      luggageCount: integer("luggage_count"),
+      pickupAddress: text("pickup_address"),
+      dropoffAddress: text("dropoff_address"),
+      // Pricing (per-vehicle * numVehicles)
+      unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
+      netCost: numeric("net_cost", { precision: 10, scale: 2 }).notNull(),
+      totalPrice: numeric("total_price", { precision: 10, scale: 2 }).notNull(),
+      // Workflow
+      supplierConfirmationRef: text("supplier_confirmation_ref"),
+      emailSentToSupplier: boolean("email_sent_to_supplier").default(false),
+      emailSentAt: timestamp("email_sent_at", { withTimezone: true }),
+      status: transferBookingStatusEnum("status").default("NEW").notNull(),
+      paymentStatus: text("payment_status").default("PENDING"),
+      specialRequests: text("special_requests"),
+      internalNotes: text("internal_notes"),
+      cancellationReason: text("cancellation_reason"),
+      confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+      voucherIssuedAt: timestamp("voucher_issued_at", { withTimezone: true }),
+      cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+      updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      statusIdx: index("transfer_bookings_status_idx").on(t.status),
+      agentIdx: index("transfer_bookings_agent_idx").on(t.salesAgentId),
+      opsIdx: index("transfer_bookings_ops_idx").on(t.assignedOpsId),
+      dateIdx: index("transfer_bookings_date_idx").on(t.transferDate),
+    })
+  );
+
+  export const transferBookingStatusHistory = pgTable("transfer_booking_status_history", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id")
+      .notNull()
+      .references(() => transferBookings.id, { onDelete: "cascade" }),
+    fromStatus: text("from_status"),
+    toStatus: text("to_status").notNull(),
+    changedBy: uuid("changed_by").references(() => users.id),
+    note: text("note"),
+    changedAt: timestamp("changed_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  /* ---- Transfer relations ---- */
+  export const transferLocationsRelations = relations(transferLocations, ({ one }) => ({
+    country: one(countries, { fields: [transferLocations.countryId], references: [countries.id] }),
+  }));
+
+  export const transferRoutesRelations = relations(transferRoutes, ({ one, many }) => ({
+    country: one(countries, { fields: [transferRoutes.countryId], references: [countries.id] }),
+    fromLocation: one(transferLocations, { fields: [transferRoutes.fromLocationId], references: [transferLocations.id], relationName: "fromLocation" }),
+    toLocation: one(transferLocations, { fields: [transferRoutes.toLocationId], references: [transferLocations.id], relationName: "toLocation" }),
+    supplier: one(suppliers, { fields: [transferRoutes.supplierId], references: [suppliers.id] }),
+    rates: many(transferRates),
+    bookings: many(transferBookings),
+  }));
+
+  export const transferRatesRelations = relations(transferRates, ({ one }) => ({
+    route: one(transferRoutes, { fields: [transferRates.routeId], references: [transferRoutes.id] }),
+  }));
+
+  export const transferBookingsRelations = relations(transferBookings, ({ one, many }) => ({
+    route: one(transferRoutes, { fields: [transferBookings.routeId], references: [transferRoutes.id] }),
+    rate: one(transferRates, { fields: [transferBookings.rateId], references: [transferRates.id] }),
+    supplier: one(suppliers, { fields: [transferBookings.supplierId], references: [suppliers.id] }),
+    salesAgent: one(users, { fields: [transferBookings.salesAgentId], references: [users.id] }),
+    assignedOps: one(users, { fields: [transferBookings.assignedOpsId], references: [users.id] }),
+    statusHistory: many(transferBookingStatusHistory),
+  }));
+
 export * from "./auth-schema";
