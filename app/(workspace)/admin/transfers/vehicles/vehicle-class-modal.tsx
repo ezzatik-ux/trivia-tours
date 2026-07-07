@@ -46,7 +46,8 @@ export function VehicleClassModal({ open, onClose, editing }: Props) {
       setDescription(editing?.description ?? "");
       setImageUrl(editing?.imageUrl ?? "");
       setMaxPax(editing?.maxPax?.toString() ?? "3");
-      setMaxLuggage(editing?.maxLuggage?.toString() ?? "3");
+      // Preserve null (no luggage limit) when editing; default "3" only for new classes
+      setMaxLuggage(editing ? editing.maxLuggage?.toString() ?? "" : "3");
       setAmenities(editing?.amenities ?? []);
       setDriverLanguages(editing?.driverLanguages ?? []);
       setIsActive(editing?.isActive ?? true);

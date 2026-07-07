@@ -416,6 +416,8 @@ export async function getTransferBookingById(id: string) {
       b.return_date, b.return_pickup_time, b.return_flight_number, b.return_terminal,
       fl.name AS from_name, tl.name AS to_name,
       c.name AS country_name, r.estimated_duration_min,
+      tr.max_pax AS rate_max_pax,
+      tr.max_luggage AS rate_max_luggage,
       vc.id AS vc_id,
       vc.name AS vc_name,
       vc.tier AS vc_tier,
@@ -438,6 +440,8 @@ export async function getTransferBookingById(id: string) {
   `);
   const arr = rows as unknown as Array<
     Record<string, unknown> & {
+      rate_max_pax: number;
+      rate_max_luggage: number | null;
       vc_id: string | null;
       vc_name: string | null;
       vc_tier: number | null;

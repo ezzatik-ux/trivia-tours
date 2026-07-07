@@ -20,6 +20,8 @@ export default async function TransferBookingConfirmation({
     vehicleClass: TransferVehicleClassInfo | null;
     vehicle_type: string;
     num_vehicles: number;
+    rate_max_pax: number;
+    rate_max_luggage: number | null;
   }) | null;
 
   if (!b) redirect("/transfers");
@@ -27,8 +29,8 @@ export default async function TransferBookingConfirmation({
   const cls = b.vehicleClass;
   const legacyLabel = VEHICLE_LABELS[b.vehicle_type] ?? b.vehicle_type;
   const classDisplayName = cls?.name ?? legacyLabel;
-  const classMaxPax = cls?.maxPax ?? null;
-  const classMaxLuggage = cls?.maxLuggage ?? null;
+  const classMaxPax = cls?.maxPax ?? b.rate_max_pax;
+  const classMaxLuggage = cls?.maxLuggage ?? b.rate_max_luggage;
   const classAmenities = cls?.amenities ?? [];
 
   const fmtDate = (d: string) =>

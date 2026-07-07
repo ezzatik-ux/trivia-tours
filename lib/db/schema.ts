@@ -456,6 +456,8 @@ import {
       entityIdx: index("audit_entity_idx").on(t.entityType, t.entityId),
       userIdx: index("audit_user_idx").on(t.userId),
     })
+    // Deny-by-default for Supabase API roles (anon/authenticated). The app's
+    // server-side connection uses the table-owner role, which bypasses RLS.
   ).enableRLS();
   
   /* ============================================================
