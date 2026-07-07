@@ -47,6 +47,7 @@ export function TransferBookingForm({ context, defaultDate, defaultPax }: Props)
   const [returnPickupTime, setReturnPickupTime] = useState("");
   const [returnFlightNumber, setReturnFlightNumber] = useState("");
   const [returnTerminal, setReturnTerminal] = useState("");
+  const [classImgFailed, setClassImgFailed] = useState(false);
 
   const legMultiplier = tripType === "ROUND_TRIP" ? 2 : 1;
   const totalPrice = useMemo(
@@ -97,6 +98,11 @@ export function TransferBookingForm({ context, defaultDate, defaultPax }: Props)
   }
 
   const vehicleLabel = VEHICLE_LABELS[context.vehicleType] ?? context.vehicleType;
+  const cls = context.vehicleClass;
+  const classDisplayName = cls?.name ?? vehicleLabel;
+  const classMaxPax = cls?.maxPax ?? context.maxPax;
+  const classMaxLuggage = cls?.maxLuggage ?? context.maxLuggage;
+  const classAmenities = cls?.amenities ?? [];
   const fieldCls =
     "w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-trivia-200 focus:border-trivia-400";
   const labelCls =
@@ -268,15 +274,43 @@ export function TransferBookingForm({ context, defaultDate, defaultPax }: Props)
               <span className="truncate">{context.toName}</span>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-slate-900">{vehicleLabel}</span>
-                <span className="text-xs text-slate-500">${context.sellPrice.toFixed(0)} / vehicle</span>
+            <div className="flex gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <div className="w-16 h-12 flex-shrink-0 rounded-md bg-slate-100 overflow-hidden flex items-center justify-center">
+                {cls?.imageUrl && !classImgFailed ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={cls.imageUrl}
+                    alt={classDisplayName}
+                    className="w-full h-full object-cover"
+                    onError={() => setClassImgFailed(true)}
+                  />
+                ) : (
+                  <Car className="w-6 h-6 text-slate-400" />
+                )}
               </div>
-              <div className="flex flex-wrap gap-3 text-xs text-slate-600">
-                <span className="flex items-center gap-1"><Users className="w-3 h-3" /> Up to {context.maxPax}</span>
-                {context.maxLuggage != null && <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" /> {context.maxLuggage} bags</span>}
-                {context.estimatedDurationMin && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> ~{context.estimatedDurationMin}m</span>}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-slate-900 text-sm">{classDisplayName}</span>
+                  <span className="text-xs text-slate-500 flex-shrink-0">${context.sellPrice.toFixed(0)} / vehicle</span>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-1 text-xs text-slate-600">
+                  <span className="flex items-center gap-1"><Users className="w-3 h-3" /> Up to {classMaxPax}</span>
+                  {classMaxLuggage != null && (
+                    <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" /> {classMaxLuggage} bags</span>
+                  )}
+                  {context.estimatedDurationMin && (
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> ~{context.estimatedDurationMin}m</span>
+                  )}
+                </div>
+                {classAmenities.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {classAmenities.map((a) => (
+                      <span key={a} className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-white text-slate-600 border border-slate-200">
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

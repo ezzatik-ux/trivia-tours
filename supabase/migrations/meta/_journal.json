@@ -15,6 +15,20 @@
       "when": 1779729806134,
       "tag": "0001_lumpy_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779804647268,
+      "tag": "0002_quiet_tyger_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779804673708,
+      "tag": "0003_next_famine",
+      "breakpoints": true
     }
   ]
 }

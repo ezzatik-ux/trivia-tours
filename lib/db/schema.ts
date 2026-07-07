@@ -456,7 +456,7 @@ import {
       entityIdx: index("audit_entity_idx").on(t.entityType, t.entityId),
       userIdx: index("audit_user_idx").on(t.userId),
     })
-  );
+  ).enableRLS();
   
   /* ============================================================
      HOTELS MODULE
@@ -802,6 +802,35 @@ import {
     })
   );
 
+  /* ============================================================
+     TRANSFER VEHICLE CLASSES (catalog — defined once, reused across routes)
+  ============================================================ */
+
+  export const transferVehicleClasses = pgTable(
+    "transfer_vehicle_classes",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      name: text("name").notNull(), // "Standard", "Business", "Minivan VIP"
+      tier: integer("tier").default(1).notNull(), // ordering: 1=Economy … higher=premium
+      baseVehicleType: vehicleTypeEnum("base_vehicle_type"), // optional link to raw enum (SEDAN/VAN…)
+      exampleModels: text("example_models"), // "Toyota Corolla and similar"
+      description: text("description"),
+      imageUrl: text("image_url"),
+      maxPax: integer("max_pax").default(3).notNull(),
+      maxLuggage: integer("max_luggage").default(3),
+      amenities: jsonb("amenities").$type<string[]>().default([]),
+      driverLanguages: jsonb("driver_languages").$type<string[]>().default([]),
+      isActive: boolean("is_active").default(true).notNull(),
+      sortOrder: integer("sort_order").default(0).notNull(),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+      updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      activeIdx: index("transfer_vehicle_classes_active_idx").on(t.isActive),
+      tierIdx: index("transfer_vehicle_classes_tier_idx").on(t.tier),
+    })
+  );
+
   // Per-vehicle rate card for a route. One row per vehicle type.
   export const transferRates = pgTable(
     "transfer_rates",
@@ -811,6 +840,7 @@ import {
         .notNull()
         .references(() => transferRoutes.id, { onDelete: "cascade" }),
       vehicleType: vehicleTypeEnum("vehicle_type").notNull(),
+      vehicleClassId: uuid("vehicle_class_id").references(() => transferVehicleClasses.id),
       maxPax: integer("max_pax").notNull(),
       maxLuggage: integer("max_luggage"),
       netPrice: numeric("net_price", { precision: 10, scale: 2 }).notNull(),
@@ -914,6 +944,10 @@ import {
   });
 
   /* ---- Transfer relations ---- */
+  export const transferVehicleClassesRelations = relations(transferVehicleClasses, ({ many }) => ({
+    rates: many(transferRates),
+  }));
+
   export const transferLocationsRelations = relations(transferLocations, ({ one }) => ({
     country: one(countries, { fields: [transferLocations.countryId], references: [countries.id] }),
   }));
@@ -929,6 +963,7 @@ import {
 
   export const transferRatesRelations = relations(transferRates, ({ one }) => ({
     route: one(transferRoutes, { fields: [transferRates.routeId], references: [transferRoutes.id] }),
+    vehicleClass: one(transferVehicleClasses, { fields: [transferRates.vehicleClassId], references: [transferVehicleClasses.id] }),
   }));
 
   export const transferBookingsRelations = relations(transferBookings, ({ one, many }) => ({

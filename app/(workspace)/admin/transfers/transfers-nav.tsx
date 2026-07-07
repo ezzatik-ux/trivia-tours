@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Route, MapPin } from "lucide-react";
+import { Route, MapPin, Car } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function TransfersNav() {
@@ -11,6 +11,7 @@ export function TransfersNav() {
   const tabs = [
     { label: "Routes", href: "/admin/transfers", icon: Route, exact: true },
     { label: "Locations", href: "/admin/transfers/locations", icon: MapPin, exact: false },
+    { label: "Vehicles", href: "/admin/transfers/vehicles", icon: Car, exact: false },
   ];
 
   return (

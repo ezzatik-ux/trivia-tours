@@ -1,0 +1,2 @@
+ALTER TABLE "transfer_rates" ADD COLUMN "vehicle_class_id" uuid;--> statement-breakpoint
+ALTER TABLE "transfer_rates" ADD CONSTRAINT "transfer_rates_vehicle_class_id_transfer_vehicle_classes_id_fk" FOREIGN KEY ("vehicle_class_id") REFERENCES "public"."transfer_vehicle_classes"("id") ON DELETE no action ON UPDATE no action;
