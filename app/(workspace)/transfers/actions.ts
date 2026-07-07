@@ -11,7 +11,7 @@ import {
 import { sql, eq, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth-utils";
-import type { TransferRateWithClass, TransferVehicleClassInfo } from "@/lib/transfer-options";
+import type { TransferBookingDetail, TransferRateWithClass, TransferVehicleClassInfo } from "@/lib/transfer-options";
 
 export type TransferSearchLocation = {
   id: string;
@@ -403,7 +403,7 @@ export async function createTransferBooking(input: TransferBookingInput) {
 
 // ─── GET TRANSFER BOOKING (confirmation view) ───
 
-export async function getTransferBookingById(id: string) {
+export async function getTransferBookingById(id: string): Promise<TransferBookingDetail | null> {
   await requireAuth();
   const rows = await db.execute(sql`
     SELECT
@@ -482,5 +482,5 @@ export async function getTransferBookingById(id: string) {
         isActive: vc_is_active!,
       }
     : null;
-  return { ...rest, vehicleClass };
+  return { ...rest, vehicleClass } as TransferBookingDetail;
 }

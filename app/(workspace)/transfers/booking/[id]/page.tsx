@@ -2,7 +2,7 @@ import { requireAuth } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getTransferBookingById } from "../../actions";
-import type { TransferVehicleClassInfo } from "@/lib/transfer-options";
+import type { TransferBookingDetail } from "@/lib/transfer-options";
 import { CheckCircle2, MapPin, ArrowRight, Calendar, Clock, Plane, Users, Car, Briefcase, Search } from "lucide-react";
 
 const VEHICLE_LABELS: Record<string, string> = {
@@ -16,13 +16,7 @@ export default async function TransferBookingConfirmation({
 }) {
   await requireAuth();
   const { id } = await params;
-  const b = (await getTransferBookingById(id)) as (Record<string, unknown> & {
-    vehicleClass: TransferVehicleClassInfo | null;
-    vehicle_type: string;
-    num_vehicles: number;
-    rate_max_pax: number;
-    rate_max_luggage: number | null;
-  }) | null;
+  const b: TransferBookingDetail | null = await getTransferBookingById(id);
 
   if (!b) redirect("/transfers");
 
