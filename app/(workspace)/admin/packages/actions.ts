@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { packages, countries, packageDays, packageImages, packageRates } from "@/lib/db/schema";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
 
@@ -25,6 +25,7 @@ export type PackageInput = {
 };
 
 export type PackageDayInput = {
+  id?: string; // present = existing day; absent = new day
   title: string;
   description?: string | null;
   locationName?: string | null;
@@ -279,6 +280,7 @@ export async function getPackageDays(packageId: string) {
 
   return db
     .select({
+      id: packageDays.id,
       dayNumber: packageDays.dayNumber,
       title: packageDays.title,
       description: packageDays.description,
@@ -306,19 +308,74 @@ export async function savePackageDays(
 
   try {
     await db.transaction(async (tx) => {
-      await tx
-        .delete(packageDays)
+      const existing = await tx
+        .select({ id: packageDays.id })
+        .from(packageDays)
         .where(eq(packageDays.packageId, packageId));
-      if (days.length > 0) {
-        await tx.insert(packageDays).values(
-          days.map((d, i) => ({
+      const existingIds = new Set(existing.map((r) => r.id));
+
+      const incomingIds = new Set(
+        days.map((d) => d.id).filter((id): id is string => !!id)
+      );
+
+      // Delete removed days (cascade removes their images — correct).
+      const toDelete = [...existingIds].filter((id) => !incomingIds.has(id));
+      if (toDelete.length > 0) {
+        await tx
+          .delete(packageDays)
+          .where(
+            and(
+              eq(packageDays.packageId, packageId),
+              inArray(packageDays.id, toDelete)
+            )
+          );
+      }
+
+      // PHASE 1 — park existing rows at 1000+i, insert new rows at final i+1.
+      // Existing (1000+) and new (1..n) ranges are disjoint → no collision.
+      for (let i = 0; i < days.length; i++) {
+        const d = days[i];
+        const title = d.title.trim();
+        const description = d.description?.trim() || null;
+        const locationName = d.locationName?.trim() || null;
+
+        if (d.id && existingIds.has(d.id)) {
+          await tx
+            .update(packageDays)
+            .set({ dayNumber: 1000 + i, title, description, locationName })
+            .where(
+              and(
+                eq(packageDays.id, d.id),
+                eq(packageDays.packageId, packageId)
+              )
+            );
+        } else {
+          await tx.insert(packageDays).values({
             packageId,
             dayNumber: i + 1,
-            title: d.title.trim(),
-            description: d.description?.trim() || null,
-            locationName: d.locationName?.trim() || null,
-          }))
-        );
+            title,
+            description,
+            locationName,
+          });
+        }
+      }
+
+      // PHASE 2 — bring parked existing rows down to their final i+1.
+      // Each array index maps to exactly one row, so each final number is
+      // claimed once → collision-free without a deferrable constraint.
+      for (let i = 0; i < days.length; i++) {
+        const d = days[i];
+        if (d.id && existingIds.has(d.id)) {
+          await tx
+            .update(packageDays)
+            .set({ dayNumber: i + 1 })
+            .where(
+              and(
+                eq(packageDays.id, d.id),
+                eq(packageDays.packageId, packageId)
+              )
+            );
+        }
       }
     });
 

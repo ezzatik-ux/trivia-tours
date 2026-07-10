@@ -1043,6 +1043,24 @@ import {
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   });
 
+  export const packageDayImages = pgTable(
+    "package_day_images",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      dayId: uuid("day_id")
+        .notNull()
+        .references(() => packageDays.id, { onDelete: "cascade" }),
+      url: text("url").notNull(),
+      altText: varchar("alt_text", { length: 255 }),
+      isCover: boolean("is_cover").notNull().default(false),
+      sortOrder: integer("sort_order").default(0),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      dayIdx: index("package_day_images_day_idx").on(t.dayId),
+    })
+  );
+
   export const packageRates = pgTable(
     "package_rates",
     {
@@ -1082,8 +1100,13 @@ import {
     rates: many(packageRates),
   }));
 
-  export const packageDaysRelations = relations(packageDays, ({ one }) => ({
+  export const packageDaysRelations = relations(packageDays, ({ one, many }) => ({
     package: one(packages, { fields: [packageDays.packageId], references: [packages.id] }),
+    images: many(packageDayImages),
+  }));
+
+  export const packageDayImagesRelations = relations(packageDayImages, ({ one }) => ({
+    day: one(packageDays, { fields: [packageDayImages.dayId], references: [packageDays.id] }),
   }));
 
   export const packageImagesRelations = relations(packageImages, ({ one }) => ({

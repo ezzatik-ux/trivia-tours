@@ -43,6 +43,13 @@
       "when": 1783701281605,
       "tag": "0005_dazzling_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783721242874,
+      "tag": "0006_sticky_junta",
+      "breakpoints": true
     }
   ]
 }

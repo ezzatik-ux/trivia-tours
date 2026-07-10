@@ -14,6 +14,8 @@ import {
 import { savePackageDays, type PackageDayInput } from "./actions";
 
 type DayRow = {
+  id?: string; // DB id for existing days; undefined for new (unsaved) days
+  clientKey: string; // stable React key + tracking
   title: string;
   description: string;
   locationName: string;
@@ -31,6 +33,8 @@ export function PackageDaysEditor({ packageId, initialDays }: Props) {
   const [saved, setSaved] = useState(false);
   const [days, setDays] = useState<DayRow[]>(
     initialDays.map((d) => ({
+      id: d.id,
+      clientKey: d.id ?? crypto.randomUUID(),
       title: d.title ?? "",
       description: d.description ?? "",
       locationName: d.locationName ?? "",
@@ -47,7 +51,13 @@ export function PackageDaysEditor({ packageId, initialDays }: Props) {
   function addDay() {
     setDays((prev) => [
       ...prev,
-      { title: "", description: "", locationName: "" },
+      {
+        id: undefined,
+        clientKey: crypto.randomUUID(),
+        title: "",
+        description: "",
+        locationName: "",
+      },
     ]);
     setSaved(false);
   }
@@ -85,6 +95,7 @@ export function PackageDaysEditor({ packageId, initialDays }: Props) {
       const result = await savePackageDays(
         packageId,
         days.map((d) => ({
+          id: d.id,
           title: d.title,
           description: d.description || null,
           locationName: d.locationName || null,
@@ -142,7 +153,7 @@ export function PackageDaysEditor({ packageId, initialDays }: Props) {
         <div className="space-y-4">
           {days.map((day, index) => (
             <div
-              key={index}
+              key={day.clientKey}
               className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3"
             >
               <div className="flex items-center justify-between gap-2">
