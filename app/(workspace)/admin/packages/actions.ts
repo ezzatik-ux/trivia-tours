@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { packages, countries, packageDays, packageImages } from "@/lib/db/schema";
+import { packages, countries, packageDays, packageImages, packageRates } from "@/lib/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
@@ -35,6 +35,65 @@ export type PackageImageInput = {
   isCover: boolean;
   sortOrder: number;
 };
+
+export type PackageRateInput = {
+  label?: string | null;
+  netAdult: number | string;
+  netChild: number | string;
+  markupPct: number | string;
+  validFrom: string;
+  validTo: string;
+  minPax: number;
+  maxPax?: number | null;
+  childAgeMin: number;
+  childAgeMax: number;
+  isActive: boolean;
+};
+
+function computeSell(net: number, markupPct: number): string {
+  return (net * (1 + markupPct / 100)).toFixed(2);
+}
+
+function validatePackageRateInput(input: PackageRateInput): string | null {
+  const netAdult = Number(input.netAdult);
+  const netChild = Number(input.netChild);
+  const markupPct = Number(input.markupPct);
+
+  if (!Number.isFinite(netAdult) || netAdult < 0) {
+    return "Adult net price cannot be negative";
+  }
+  if (!Number.isFinite(netChild) || netChild < 0) {
+    return "Child net price cannot be negative";
+  }
+  if (!Number.isFinite(markupPct) || markupPct < 0) {
+    return "Markup cannot be negative";
+  }
+  if (!input.validFrom || !input.validTo) {
+    return "Valid from and valid to dates are required";
+  }
+  if (input.validFrom > input.validTo) {
+    return "Valid from must be on or before valid to";
+  }
+  if (!Number.isFinite(input.minPax) || input.minPax < 1) {
+    return "Minimum pax must be at least 1";
+  }
+  if (
+    input.maxPax != null &&
+    (!Number.isFinite(input.maxPax) || input.maxPax < input.minPax)
+  ) {
+    return "Maximum pax must be greater than or equal to minimum pax";
+  }
+  if (!Number.isFinite(input.childAgeMin) || input.childAgeMin < 0) {
+    return "Child age min cannot be negative";
+  }
+  if (
+    !Number.isFinite(input.childAgeMax) ||
+    input.childAgeMax < input.childAgeMin
+  ) {
+    return "Child age max must be greater than or equal to child age min";
+  }
+  return null;
+}
 
 function isUniqueViolation(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -332,5 +391,152 @@ export async function savePackageImages(
   } catch (error) {
     console.error("savePackageImages error:", error);
     return { success: false as const, error: "Failed to save images" };
+  }
+}
+
+export async function getPackageRates(packageId: string) {
+  await requireRole([...ROLES]);
+
+  return db
+    .select({
+      id: packageRates.id,
+      label: packageRates.label,
+      netAdult: packageRates.netAdult,
+      netChild: packageRates.netChild,
+      markupPct: packageRates.markupPct,
+      sellAdult: packageRates.sellAdult,
+      sellChild: packageRates.sellChild,
+      validFrom: packageRates.validFrom,
+      validTo: packageRates.validTo,
+      minPax: packageRates.minPax,
+      maxPax: packageRates.maxPax,
+      childAgeMin: packageRates.childAgeMin,
+      childAgeMax: packageRates.childAgeMax,
+      isActive: packageRates.isActive,
+    })
+    .from(packageRates)
+    .where(eq(packageRates.packageId, packageId))
+    .orderBy(asc(packageRates.validFrom));
+}
+
+export async function createPackageRate(
+  packageId: string,
+  input: PackageRateInput
+) {
+  const user = await requireRole([...ROLES]);
+
+  const validationError = validatePackageRateInput(input);
+  if (validationError) {
+    return { success: false as const, error: validationError };
+  }
+
+  const netAdult = Number(input.netAdult);
+  const netChild = Number(input.netChild);
+  const markupPct = Number(input.markupPct);
+  const sellAdult = computeSell(netAdult, markupPct);
+  const sellChild = computeSell(netChild, markupPct);
+
+  try {
+    await db.insert(packageRates).values({
+      packageId,
+      label: input.label?.trim() || null,
+      netAdult: netAdult.toString(),
+      netChild: netChild.toString(),
+      markupPct: markupPct.toString(),
+      sellAdult,
+      sellChild,
+      validFrom: input.validFrom,
+      validTo: input.validTo,
+      minPax: input.minPax,
+      maxPax: input.maxPax ?? null,
+      childAgeMin: input.childAgeMin,
+      childAgeMax: input.childAgeMax,
+      isActive: input.isActive,
+      createdBy: user.id,
+    });
+
+    revalidatePath(`/admin/packages/${packageId}/edit`);
+    revalidatePath("/admin/packages");
+    return { success: true as const };
+  } catch (error) {
+    console.error("createPackageRate error:", error);
+    return { success: false as const, error: "Failed to create rate" };
+  }
+}
+
+export async function updatePackageRate(id: string, input: PackageRateInput) {
+  await requireRole([...ROLES]);
+
+  const validationError = validatePackageRateInput(input);
+  if (validationError) {
+    return { success: false as const, error: validationError };
+  }
+
+  const netAdult = Number(input.netAdult);
+  const netChild = Number(input.netChild);
+  const markupPct = Number(input.markupPct);
+  const sellAdult = computeSell(netAdult, markupPct);
+  const sellChild = computeSell(netChild, markupPct);
+
+  try {
+    const [existing] = await db
+      .select({ packageId: packageRates.packageId })
+      .from(packageRates)
+      .where(eq(packageRates.id, id))
+      .limit(1);
+
+    if (!existing) {
+      return { success: false as const, error: "Rate not found" };
+    }
+
+    await db
+      .update(packageRates)
+      .set({
+        label: input.label?.trim() || null,
+        netAdult: netAdult.toString(),
+        netChild: netChild.toString(),
+        markupPct: markupPct.toString(),
+        sellAdult,
+        sellChild,
+        validFrom: input.validFrom,
+        validTo: input.validTo,
+        minPax: input.minPax,
+        maxPax: input.maxPax ?? null,
+        childAgeMin: input.childAgeMin,
+        childAgeMax: input.childAgeMax,
+        isActive: input.isActive,
+        updatedAt: new Date(),
+      })
+      .where(eq(packageRates.id, id));
+
+    revalidatePath(`/admin/packages/${existing.packageId}/edit`);
+    revalidatePath("/admin/packages");
+    return { success: true as const };
+  } catch (error) {
+    console.error("updatePackageRate error:", error);
+    return { success: false as const, error: "Failed to update rate" };
+  }
+}
+
+export async function deletePackageRate(id: string) {
+  await requireRole([...ROLES]);
+
+  try {
+    const [existing] = await db
+      .select({ packageId: packageRates.packageId })
+      .from(packageRates)
+      .where(eq(packageRates.id, id))
+      .limit(1);
+
+    await db.delete(packageRates).where(eq(packageRates.id, id));
+
+    if (existing) {
+      revalidatePath(`/admin/packages/${existing.packageId}/edit`);
+    }
+    revalidatePath("/admin/packages");
+    return { success: true as const };
+  } catch (error) {
+    console.error("deletePackageRate error:", error);
+    return { success: false as const, error: "Failed to delete rate" };
   }
 }

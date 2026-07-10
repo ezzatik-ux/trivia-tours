@@ -7,10 +7,12 @@ import {
   getPackageById,
   getPackageDays,
   getPackageImages,
+  getPackageRates,
 } from "../../actions";
 import { PackageForm } from "../../package-form";
 import { PackageDaysEditor } from "../../package-days-editor";
 import { PackageImagesSection } from "../../package-images-section";
+import { PackageRatesSection } from "../../package-rates-section";
 
 export default async function EditPackagePage({
   params,
@@ -27,9 +29,10 @@ export default async function EditPackagePage({
 
   if (!pkg) notFound();
 
-  const [days, images] = await Promise.all([
+  const [days, images, rates] = await Promise.all([
     getPackageDays(pkg.id),
     getPackageImages(pkg.id),
+    getPackageRates(pkg.id),
   ]);
 
   return (
@@ -92,6 +95,16 @@ export default async function EditPackagePage({
             sortOrder: img.sortOrder ?? 0,
           }))}
         />
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Rates</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Cost + markup per person; sell computed on save
+          </p>
+        </div>
+        <PackageRatesSection packageId={pkg.id} initialRates={rates} />
       </div>
     </div>
   );
