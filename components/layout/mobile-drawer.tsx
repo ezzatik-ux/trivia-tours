@@ -17,6 +17,7 @@ import {
   Settings,
   Building2,
   Hotel,
+  Luggage,
   LogOut,
   ChevronDown,
 } from "lucide-react";
@@ -50,6 +51,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Search Tours", href: "/search", icon: Search, roles: ["SALES", "ADMIN"] },
       { label: "Search Hotels", href: "/hotels", icon: Hotel, roles: ["SALES", "ADMIN"] },
       { label: "Search Transfers", href: "/transfers", icon: Car, roles: ["SALES", "OPS", "PRODUCT", "ADMIN"] },
+      { label: "Packages", href: "/packages", icon: Luggage, roles: ["SALES", "OPS", "PRODUCT", "ADMIN"] },
       { label: "My Bookings", href: "/bookings", icon: Calendar, roles: ["SALES", "ADMIN"] },
     ],
   },
@@ -59,6 +61,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Manage Tours", href: "/products", icon: Package2, roles: ["PRODUCT", "ADMIN"] },
       { label: "Manage Hotels", href: "/admin/hotels", icon: Hotel, roles: ["PRODUCT", "ADMIN"] },
       { label: "Transfers", href: "/admin/transfers", icon: Car, roles: ["OPS", "PRODUCT", "ADMIN"] },
+      { label: "Manage Packages", href: "/admin/packages", icon: Luggage, roles: ["OPS", "PRODUCT", "ADMIN"] },
       { label: "Suppliers", href: "/suppliers", icon: Building2, roles: ["PRODUCT", "ADMIN"] },
     ],
   },
