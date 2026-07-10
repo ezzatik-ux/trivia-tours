@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { packages, countries, packageDays, packageImages, packageRates } from "@/lib/db/schema";
+import { packages, countries, packageDays, packageImages, packageDayImages, packageRates } from "@/lib/db/schema";
 import { eq, desc, asc, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
@@ -278,7 +278,7 @@ export async function deletePackage(id: string) {
 export async function getPackageDays(packageId: string) {
   await requireRole([...ROLES]);
 
-  return db
+  const days = await db
     .select({
       id: packageDays.id,
       dayNumber: packageDays.dayNumber,
@@ -289,6 +289,40 @@ export async function getPackageDays(packageId: string) {
     .from(packageDays)
     .where(eq(packageDays.packageId, packageId))
     .orderBy(asc(packageDays.dayNumber));
+
+  const dayIds = days.map((d) => d.id);
+
+  const imageRows = dayIds.length
+    ? await db
+        .select({
+          dayId: packageDayImages.dayId,
+          url: packageDayImages.url,
+          isCover: packageDayImages.isCover,
+          sortOrder: packageDayImages.sortOrder,
+        })
+        .from(packageDayImages)
+        .where(inArray(packageDayImages.dayId, dayIds))
+        .orderBy(asc(packageDayImages.sortOrder))
+    : [];
+
+  const imagesByDay = new Map<
+    string,
+    { url: string; isCover: boolean; sortOrder: number }[]
+  >();
+  for (const row of imageRows) {
+    const list = imagesByDay.get(row.dayId) ?? [];
+    list.push({
+      url: row.url,
+      isCover: row.isCover,
+      sortOrder: row.sortOrder ?? 0,
+    });
+    imagesByDay.set(row.dayId, list);
+  }
+
+  return days.map((d) => ({
+    ...d,
+    images: imagesByDay.get(d.id) ?? [],
+  }));
 }
 
 export async function savePackageDays(
@@ -379,12 +413,82 @@ export async function savePackageDays(
       }
     });
 
+    const savedDays = await db
+      .select({
+        id: packageDays.id,
+        dayNumber: packageDays.dayNumber,
+        title: packageDays.title,
+        description: packageDays.description,
+        locationName: packageDays.locationName,
+      })
+      .from(packageDays)
+      .where(eq(packageDays.packageId, packageId))
+      .orderBy(asc(packageDays.dayNumber));
+
     revalidatePath(`/admin/packages/${packageId}/edit`);
     revalidatePath("/admin/packages");
-    return { success: true as const };
+    return { success: true as const, days: savedDays };
   } catch (error) {
     console.error("savePackageDays error:", error);
     return { success: false as const, error: "Failed to save itinerary" };
+  }
+}
+
+export async function savePackageDayImages(
+  dayId: string,
+  images: PackageImageInput[]
+) {
+  await requireRole([...ROLES]);
+
+  const [day] = await db
+    .select({ id: packageDays.id, packageId: packageDays.packageId })
+    .from(packageDays)
+    .where(eq(packageDays.id, dayId))
+    .limit(1);
+
+  if (!day) {
+    return { success: false as const, error: "Day not found" };
+  }
+
+  try {
+    const normalized = images.map((img, idx) => ({
+      url: img.url,
+      isCover: img.isCover,
+      sortOrder: idx,
+    }));
+
+    if (normalized.length > 0) {
+      const firstCoverIdx = normalized.findIndex((img) => img.isCover);
+      if (firstCoverIdx === -1) {
+        normalized[0].isCover = true;
+      } else {
+        for (let i = 0; i < normalized.length; i++) {
+          normalized[i].isCover = i === firstCoverIdx;
+        }
+      }
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(packageDayImages)
+        .where(eq(packageDayImages.dayId, dayId));
+      if (normalized.length > 0) {
+        await tx.insert(packageDayImages).values(
+          normalized.map((img) => ({
+            dayId,
+            url: img.url,
+            isCover: img.isCover,
+            sortOrder: img.sortOrder,
+          }))
+        );
+      }
+    });
+
+    revalidatePath(`/admin/packages/${day.packageId}/edit`);
+    return { success: true as const };
+  } catch (error) {
+    console.error("savePackageDayImages error:", error);
+    return { success: false as const, error: "Failed to save day images" };
   }
 }
 
