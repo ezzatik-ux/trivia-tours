@@ -17,6 +17,7 @@ import {
     jsonb,
     primaryKey,
     index,
+    unique,
   } from "drizzle-orm/pg-core";
   import { relations } from "drizzle-orm";
   
@@ -975,6 +976,122 @@ import {
     salesAgent: one(users, { fields: [transferBookings.salesAgentId], references: [users.id] }),
     assignedOps: one(users, { fields: [transferBookings.assignedOpsId], references: [users.id] }),
     statusHistory: many(transferBookingStatusHistory),
+  }));
+
+  /* ============================================================
+     PACKAGES MODULE (dedicated — multi-day itineraries)
+  ============================================================ */
+  export const packages = pgTable(
+    "packages",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      slug: varchar("slug", { length: 255 }).notNull().unique(),
+      name: varchar("name", { length: 255 }).notNull(),
+      countryId: uuid("country_id")
+        .notNull()
+        .references(() => countries.id),
+      cityId: uuid("city_id").references(() => cities.id),
+      shortDesc: text("short_desc"),
+      overview: text("overview"),
+      durationDays: integer("duration_days").notNull(),
+      durationNights: integer("duration_nights"),
+      inclusions: jsonb("inclusions").$type<string[]>().default([]),
+      exclusions: jsonb("exclusions").$type<string[]>().default([]),
+      highlights: jsonb("highlights").$type<string[]>().default([]),
+      cancellationPolicy: text("cancellation_policy"),
+      importantInfo: text("important_info"),
+      status: productStatusEnum("status").notNull().default("DRAFT"),
+      createdBy: uuid("created_by").references(() => users.id),
+      updatedBy: uuid("updated_by").references(() => users.id),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+      updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      countryIdx: index("packages_country_idx").on(t.countryId),
+      statusIdx: index("packages_status_idx").on(t.status),
+      slugIdx: index("packages_slug_idx").on(t.slug),
+    })
+  );
+
+  export const packageDays = pgTable(
+    "package_days",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      packageId: uuid("package_id")
+        .notNull()
+        .references(() => packages.id, { onDelete: "cascade" }),
+      dayNumber: integer("day_number").notNull(),
+      title: varchar("title", { length: 255 }).notNull(),
+      description: text("description"),
+      locationName: varchar("location_name", { length: 255 }),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      packageDayUnique: unique().on(t.packageId, t.dayNumber),
+    })
+  );
+
+  export const packageImages = pgTable("package_images", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    packageId: uuid("package_id")
+      .notNull()
+      .references(() => packages.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    altText: varchar("alt_text", { length: 255 }),
+    isCover: boolean("is_cover").notNull().default(false),
+    sortOrder: integer("sort_order").default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  });
+
+  export const packageRates = pgTable(
+    "package_rates",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      packageId: uuid("package_id")
+        .notNull()
+        .references(() => packages.id, { onDelete: "cascade" }),
+      label: varchar("label", { length: 100 }),
+      netAdult: numeric("net_adult", { precision: 10, scale: 2 }).notNull().default("0"),
+      netChild: numeric("net_child", { precision: 10, scale: 2 }).notNull().default("0"),
+      markupPct: numeric("markup_pct", { precision: 5, scale: 2 }).notNull().default("0"),
+      sellAdult: numeric("sell_adult", { precision: 10, scale: 2 }).notNull().default("0"),
+      sellChild: numeric("sell_child", { precision: 10, scale: 2 }).notNull().default("0"),
+      validFrom: date("valid_from").notNull(),
+      validTo: date("valid_to").notNull(),
+      minPax: integer("min_pax").default(1),
+      maxPax: integer("max_pax"),
+      childAgeMin: integer("child_age_min").default(2),
+      childAgeMax: integer("child_age_max").default(11),
+      isActive: boolean("is_active").notNull().default(true),
+      createdBy: uuid("created_by").references(() => users.id),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+      updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      packageIdx: index("package_rates_package_idx").on(t.packageId),
+      validityIdx: index("package_rates_validity_idx").on(t.validFrom, t.validTo),
+    })
+  );
+
+  /* ---- Package relations ---- */
+  export const packagesRelations = relations(packages, ({ one, many }) => ({
+    country: one(countries, { fields: [packages.countryId], references: [countries.id] }),
+    city: one(cities, { fields: [packages.cityId], references: [cities.id] }),
+    days: many(packageDays),
+    images: many(packageImages),
+    rates: many(packageRates),
+  }));
+
+  export const packageDaysRelations = relations(packageDays, ({ one }) => ({
+    package: one(packages, { fields: [packageDays.packageId], references: [packages.id] }),
+  }));
+
+  export const packageImagesRelations = relations(packageImages, ({ one }) => ({
+    package: one(packages, { fields: [packageImages.packageId], references: [packages.id] }),
+  }));
+
+  export const packageRatesRelations = relations(packageRates, ({ one }) => ({
+    package: one(packages, { fields: [packageRates.packageId], references: [packages.id] }),
   }));
 
 export * from "./auth-schema";
