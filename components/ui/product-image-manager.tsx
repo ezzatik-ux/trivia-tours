@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { CldUploadWidget } from "next-cloudinary";
 import { Star, X, Upload, ImageIcon } from "lucide-react";
 
@@ -18,33 +19,49 @@ type Props = {
 export function ProductImageManager({ images, onChange, disabled }: Props) {
   const preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
+  // Always holds the latest images so burst upload callbacks (multiple:true fires
+  // onSuccess once per file) chain off the freshest array instead of a stale
+  // render closure.
+  const imagesRef = useRef(images);
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
+
   function handleUpload(result: any) {
     if (result.event !== "success") return;
     const url = result.info?.secure_url;
     if (!url) return;
 
+    const current = imagesRef.current;
     const newImage: ProductImage = {
       url,
-      isCover: images.length === 0, // First image becomes cover
-      sortOrder: images.length,
+      isCover: current.length === 0, // First image becomes cover
+      sortOrder: current.length,
     };
-    onChange([...images, newImage]);
+    const next = [...current, newImage];
+    imagesRef.current = next; // sync immediately so the next rapid callback sees it
+    onChange(next);
   }
 
   function handleRemove(idx: number) {
-    const removed = images[idx];
-    const next = images.filter((_, i) => i !== idx);
+    const current = imagesRef.current;
+    const removed = current[idx];
+    const next = current.filter((_, i) => i !== idx);
     // If we removed the cover, make the first remaining image the cover
-    if (removed.isCover && next.length > 0) {
+    if (removed?.isCover && next.length > 0) {
       next[0].isCover = true;
     }
+    imagesRef.current = next;
     onChange(next);
   }
 
   function handleSetCover(idx: number) {
-    onChange(
-      images.map((img, i) => ({ ...img, isCover: i === idx }))
-    );
+    const next = imagesRef.current.map((img, i) => ({
+      ...img,
+      isCover: i === idx,
+    }));
+    imagesRef.current = next;
+    onChange(next);
   }
 
   return (
