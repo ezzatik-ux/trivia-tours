@@ -13,6 +13,7 @@ import { ImageGallery } from "@/components/ui/image-gallery";
 import { CountryFlag } from "@/components/ui/country-flag";
 import { getPackageDetailBySlug } from "./actions";
 import { PackageItinerary } from "./package-itinerary";
+import { PackageQuotePanel } from "./package-quote-panel";
 
 export default async function PackageDetailPage({
   params,
@@ -49,7 +50,7 @@ export default async function PackageDetailPage({
         Back to packages
       </Link>
 
-      {/* Header */}
+      {/* Header — static From-price kept as fallback signal */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -87,101 +88,118 @@ export default async function PackageDetailPage({
         </div>
       </div>
 
-      {/* Gallery */}
-      {pkg.images.length > 0 && (
-        <ImageGallery
-          images={pkg.images.map((img) => ({
-            url: img.url,
-            isCover: img.isCover,
-          }))}
-          productName={pkg.name}
-        />
-      )}
+      {/* Two-column: content + sticky quote panel (mirrors product detail) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {pkg.images.length > 0 && (
+            <ImageGallery
+              images={pkg.images.map((img) => ({
+                url: img.url,
+                isCover: img.isCover,
+              }))}
+              productName={pkg.name}
+            />
+          )}
 
-      {/* Overview */}
-      {pkg.overview && (
-        <Section title="Overview">
-          <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-            {pkg.overview}
-          </p>
-        </Section>
-      )}
+          {pkg.overview && (
+            <Section title="Overview">
+              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                {pkg.overview}
+              </p>
+            </Section>
+          )}
 
-      {/* Highlights */}
-      {hasHighlights && (
-        <Section title="Highlights">
-          <ul className="space-y-1.5">
-            {pkg.highlights.map((item, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                <Sparkles className="w-4 h-4 text-trivia-500 mt-0.5 flex-shrink-0" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
+          {hasHighlights && (
+            <Section title="Highlights">
+              <ul className="space-y-1.5">
+                {pkg.highlights.map((item, idx) => (
+                  <li
+                    key={idx}
+                    className="flex items-start gap-2 text-sm text-slate-700"
+                  >
+                    <Sparkles className="w-4 h-4 text-trivia-500 mt-0.5 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
 
-      {/* Itinerary */}
-      {pkg.days.length > 0 && (
-        <Section title="Itinerary">
-          <PackageItinerary days={pkg.days} />
-        </Section>
-      )}
+          {pkg.days.length > 0 && (
+            <Section title="Itinerary">
+              <PackageItinerary days={pkg.days} />
+            </Section>
+          )}
 
-      {/* Inclusions & Exclusions */}
-      {(hasInclusions || hasExclusions) && (
-        <Section title="What's included">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {hasInclusions && (
-              <div>
-                <p className="text-sm font-semibold text-slate-700 mb-2">Included</p>
-                <ul className="space-y-1.5">
-                  {pkg.inclusions.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                      <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+          {(hasInclusions || hasExclusions) && (
+            <Section title="What's included">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {hasInclusions && (
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 mb-2">
+                      Included
+                    </p>
+                    <ul className="space-y-1.5">
+                      {pkg.inclusions.map((item, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-sm text-slate-700"
+                        >
+                          <Check className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {hasExclusions && (
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700 mb-2">
+                      Not included
+                    </p>
+                    <ul className="space-y-1.5">
+                      {pkg.exclusions.map((item, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-sm text-slate-700"
+                        >
+                          <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-            )}
-            {hasExclusions && (
-              <div>
-                <p className="text-sm font-semibold text-slate-700 mb-2">Not included</p>
-                <ul className="space-y-1.5">
-                  {pkg.exclusions.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                      <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+            </Section>
+          )}
+
+          {pkg.cancellationPolicy && (
+            <Section title="Cancellation policy">
+              <p className="text-slate-700 whitespace-pre-wrap text-sm leading-relaxed">
+                {pkg.cancellationPolicy}
+              </p>
+            </Section>
+          )}
+
+          {pkg.importantInfo && (
+            <Section title="Important information">
+              <div className="flex gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">
+                  {pkg.importantInfo}
+                </p>
               </div>
-            )}
-          </div>
-        </Section>
-      )}
+            </Section>
+          )}
+        </div>
 
-      {/* Cancellation policy */}
-      {pkg.cancellationPolicy && (
-        <Section title="Cancellation policy">
-          <p className="text-slate-700 whitespace-pre-wrap text-sm leading-relaxed">
-            {pkg.cancellationPolicy}
-          </p>
-        </Section>
-      )}
-
-      {/* Important info */}
-      {pkg.importantInfo && (
-        <Section title="Important information">
-          <div className="flex gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">
-              {pkg.importantInfo}
-            </p>
+        <div className="lg:col-span-1">
+          <div className="lg:sticky lg:top-24">
+            <PackageQuotePanel packageId={pkg.id} />
           </div>
-        </Section>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

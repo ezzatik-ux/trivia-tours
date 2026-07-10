@@ -8,7 +8,7 @@ import {
   packageRates,
   countries,
 } from "@/lib/db/schema";
-import { eq, and, asc, sql } from "drizzle-orm";
+import { eq, and, asc, sql, gte as gteOp, lte as lteOp } from "drizzle-orm";
 import { requireAuth } from "@/lib/auth-utils";
 
 /**
@@ -98,5 +98,116 @@ export async function getPackageDetailBySlug(slug: string) {
     days,
     images,
     fromPrice: priceRows[0]?.fromPrice ?? null,
+  };
+}
+
+/**
+ * Cheapest active package rate covering the travel date.
+ * Mirrors getApplicableRate (no supplier / infant).
+ */
+export async function getApplicablePackageRate(
+  packageId: string,
+  travelDate: string
+) {
+  await requireAuth();
+
+  const result = await db
+    .select({
+      id: packageRates.id,
+      sellAdult: packageRates.sellAdult,
+      sellChild: packageRates.sellChild,
+      minPax: packageRates.minPax,
+      maxPax: packageRates.maxPax,
+      childAgeMin: packageRates.childAgeMin,
+      childAgeMax: packageRates.childAgeMax,
+      validFrom: packageRates.validFrom,
+      validTo: packageRates.validTo,
+    })
+    .from(packageRates)
+    .where(
+      and(
+        eq(packageRates.packageId, packageId),
+        eq(packageRates.isActive, true),
+        lteOp(packageRates.validFrom, travelDate),
+        gteOp(packageRates.validTo, travelDate)
+      )
+    )
+    .orderBy(packageRates.sellAdult)
+    .limit(1);
+
+  return result[0] ?? null;
+}
+
+export type PackageQuoteCalculation = {
+  unitAdult: number;
+  unitChild: number;
+  adults: number;
+  children: number;
+  totalPax: number;
+  totalPrice: number;
+  childAgeMin: number | null;
+  childAgeMax: number | null;
+};
+
+/**
+ * Server-side package quote. Total is always recomputed here — never trust client.
+ */
+export async function calculatePackageQuote(
+  packageId: string,
+  travelDate: string,
+  adults: number,
+  children: number
+): Promise<{
+  success: boolean;
+  quote?: PackageQuoteCalculation;
+  error?: string;
+}> {
+  await requireAuth();
+
+  if (adults < 1) {
+    return { success: false, error: "At least 1 adult required." };
+  }
+
+  const rate = await getApplicablePackageRate(packageId, travelDate);
+  if (!rate) {
+    return {
+      success: false,
+      error: "No active rates available for this date. Try another date.",
+    };
+  }
+
+  const totalPax = adults + children;
+
+  if (rate.minPax && totalPax < rate.minPax) {
+    return {
+      success: false,
+      error: `Minimum ${rate.minPax} passenger${rate.minPax > 1 ? "s" : ""} required for this rate`,
+    };
+  }
+
+  if (rate.maxPax && totalPax > rate.maxPax) {
+    return {
+      success: false,
+      error: `Maximum ${rate.maxPax} passengers allowed for this rate`,
+    };
+  }
+
+  const unitAdult = parseFloat(rate.sellAdult);
+  const unitChild = parseFloat(rate.sellChild);
+  const totalPrice =
+    Math.round((adults * unitAdult + children * unitChild) * 100) / 100;
+
+  return {
+    success: true,
+    quote: {
+      unitAdult,
+      unitChild,
+      adults,
+      children,
+      totalPax,
+      totalPrice,
+      childAgeMin: rate.childAgeMin,
+      childAgeMax: rate.childAgeMax,
+    },
   };
 }
