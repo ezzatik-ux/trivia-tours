@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { packages, countries } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { packages, countries, packageDays } from "@/lib/db/schema";
+import { eq, desc, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
 
@@ -22,6 +22,12 @@ export type PackageInput = {
   cancellationPolicy?: string | null;
   importantInfo?: string | null;
   status: "DRAFT" | "ACTIVE" | "INACTIVE";
+};
+
+export type PackageDayInput = {
+  title: string;
+  description?: string | null;
+  locationName?: string | null;
 };
 
 function isUniqueViolation(error: unknown): boolean {
@@ -200,5 +206,62 @@ export async function deletePackage(id: string) {
   } catch (error) {
     console.error("deletePackage error:", error);
     return { success: false as const, error: "Failed to delete package" };
+  }
+}
+
+export async function getPackageDays(packageId: string) {
+  await requireRole([...ROLES]);
+
+  return db
+    .select({
+      dayNumber: packageDays.dayNumber,
+      title: packageDays.title,
+      description: packageDays.description,
+      locationName: packageDays.locationName,
+    })
+    .from(packageDays)
+    .where(eq(packageDays.packageId, packageId))
+    .orderBy(asc(packageDays.dayNumber));
+}
+
+export async function savePackageDays(
+  packageId: string,
+  days: PackageDayInput[]
+) {
+  await requireRole([...ROLES]);
+
+  for (const day of days) {
+    if (!day.title?.trim()) {
+      return {
+        success: false as const,
+        error: "Every day needs a title",
+      };
+    }
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(packageDays)
+        .where(eq(packageDays.packageId, packageId));
+      if (days.length > 0) {
+        await tx.insert(packageDays).values(
+          days.map((d, i) => ({
+            packageId,
+            dayNumber: i + 1,
+            title: d.title.trim(),
+            description: d.description?.trim() || null,
+            locationName: d.locationName?.trim() || null,
+          }))
+        );
+      }
+    });
+
+    revalidatePath(`/admin/packages/${packageId}/edit`);
+    revalidatePath("/admin/packages");
+    return { success: true as const };
+  } catch (error) {
+    console.error("savePackageDays error:", error);
+    return { success: false as const, error: "Failed to save itinerary" };
   }
 }
