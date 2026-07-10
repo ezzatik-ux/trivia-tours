@@ -13,6 +13,7 @@ type Day = {
   title: string;
   description: string | null;
   locationName: string | null;
+  images: { url: string; isCover: boolean; sortOrder: number }[];
 };
 
 type PackageData = {
@@ -193,6 +194,8 @@ const styles = StyleSheet.create({
     color: COLORS.textGray,
     lineHeight: 1.4,
   },
+  dayImageRow: { flexDirection: "row", gap: 6, marginTop: 6 },
+  dayThumb: { width: 60, height: 60, objectFit: "cover", borderRadius: 4 },
   twoCol: { flexDirection: "row", gap: 16 },
   col: { flex: 1 },
   priceBox: {
@@ -348,19 +351,31 @@ export function PackagePDF({ pkg, qrDataUrl }: Props) {
           {hasDays ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Itinerary</Text>
-              {pkg.days.map((day) => (
-                <View key={day.id} style={styles.dayBlock} wrap={false}>
-                  <Text style={styles.dayTitle}>
-                    Day {day.dayNumber}: {day.title}
-                  </Text>
-                  {day.locationName ? (
-                    <Text style={styles.dayLocation}>{day.locationName}</Text>
-                  ) : null}
-                  {day.description ? (
-                    <Text style={styles.dayDesc}>{day.description}</Text>
-                  ) : null}
-                </View>
-              ))}
+              {pkg.days.map((day) => {
+                const dayThumbs = [...day.images]
+                  .sort((a, b) => (b.isCover ? 1 : 0) - (a.isCover ? 1 : 0))
+                  .slice(0, 2);
+                return (
+                  <View key={day.id} style={styles.dayBlock} wrap={false}>
+                    <Text style={styles.dayTitle}>
+                      Day {day.dayNumber}: {day.title}
+                    </Text>
+                    {day.locationName ? (
+                      <Text style={styles.dayLocation}>{day.locationName}</Text>
+                    ) : null}
+                    {day.description ? (
+                      <Text style={styles.dayDesc}>{day.description}</Text>
+                    ) : null}
+                    {dayThumbs.length > 0 ? (
+                      <View style={styles.dayImageRow}>
+                        {dayThumbs.map((img, i) => (
+                          <Image key={i} src={img.url} style={styles.dayThumb} />
+                        ))}
+                      </View>
+                    ) : null}
+                  </View>
+                );
+              })}
             </View>
           ) : null}
 
