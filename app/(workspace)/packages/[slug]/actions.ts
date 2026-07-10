@@ -4,11 +4,20 @@ import { db } from "@/lib/db";
 import {
   packages,
   packageDays,
+  packageDayImages,
   packageImages,
   packageRates,
   countries,
 } from "@/lib/db/schema";
-import { eq, and, asc, sql, gte as gteOp, lte as lteOp } from "drizzle-orm";
+import {
+  eq,
+  and,
+  asc,
+  sql,
+  inArray,
+  gte as gteOp,
+  lte as lteOp,
+} from "drizzle-orm";
 import { requireAuth } from "@/lib/auth-utils";
 
 /**
@@ -80,6 +89,39 @@ export async function getPackageDetailBySlug(slug: string) {
 
   const country = countryRows[0] ?? null;
 
+  const dayIds = days.map((d) => d.id);
+  const dayImageRows = dayIds.length
+    ? await db
+        .select({
+          dayId: packageDayImages.dayId,
+          url: packageDayImages.url,
+          isCover: packageDayImages.isCover,
+          sortOrder: packageDayImages.sortOrder,
+        })
+        .from(packageDayImages)
+        .where(inArray(packageDayImages.dayId, dayIds))
+        .orderBy(asc(packageDayImages.sortOrder))
+    : [];
+
+  const imagesByDay = new Map<
+    string,
+    { url: string; isCover: boolean; sortOrder: number }[]
+  >();
+  for (const row of dayImageRows) {
+    const list = imagesByDay.get(row.dayId) ?? [];
+    list.push({
+      url: row.url,
+      isCover: row.isCover,
+      sortOrder: row.sortOrder ?? 0,
+    });
+    imagesByDay.set(row.dayId, list);
+  }
+
+  const daysWithImages = days.map((d) => ({
+    ...d,
+    images: imagesByDay.get(d.id) ?? [],
+  }));
+
   return {
     id: pkg.id,
     name: pkg.name,
@@ -95,7 +137,7 @@ export async function getPackageDetailBySlug(slug: string) {
     importantInfo: pkg.importantInfo,
     countryName: country?.name ?? null,
     countryCode: country?.code ?? null,
-    days,
+    days: daysWithImages,
     images,
     fromPrice: priceRows[0]?.fromPrice ?? null,
   };

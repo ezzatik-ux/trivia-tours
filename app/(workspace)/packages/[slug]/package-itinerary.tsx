@@ -6,6 +6,7 @@ type Day = {
   title: string;
   description: string | null;
   locationName: string | null;
+  images: { url: string; isCover: boolean; sortOrder: number }[];
 };
 
 type Props = {
@@ -38,6 +39,19 @@ export function PackageItinerary({ days }: Props) {
               <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
                 {day.description}
               </p>
+            )}
+
+            {day.images.length > 0 && (
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                {day.images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img.url}
+                    alt={`${day.title} photo ${i + 1}`}
+                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0 border border-slate-200"
+                  />
+                ))}
+              </div>
             )}
           </div>
         </li>
