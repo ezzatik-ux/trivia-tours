@@ -14,6 +14,7 @@ import { CountryFlag } from "@/components/ui/country-flag";
 import { getPackageDetailBySlug } from "./actions";
 import { PackageItinerary } from "./package-itinerary";
 import { PackageQuotePanel } from "./package-quote-panel";
+import { PackageShareActions } from "./package-share-actions";
 
 export default async function PackageDetailPage({
   params,
@@ -39,6 +40,11 @@ export default async function PackageDetailPage({
   const hasInclusions = (pkg.inclusions?.length ?? 0) > 0;
   const hasExclusions = (pkg.exclusions?.length ?? 0) > 0;
   const hasHighlights = (pkg.highlights?.length ?? 0) > 0;
+
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || "https://trivia-tours.vercel.app";
+  const shareUrl = `${baseUrl}/packages/${pkg.slug}`;
+  const pdfUrl = `${baseUrl}/api/package-pdf/${pkg.slug}`;
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -87,6 +93,12 @@ export default async function PackageDetailPage({
           )}
         </div>
       </div>
+
+      <PackageShareActions
+        packageName={pkg.name}
+        shareUrl={shareUrl}
+        pdfUrl={pdfUrl}
+      />
 
       {/* Two-column: content + sticky quote panel (mirrors product detail) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
