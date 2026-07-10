@@ -6,9 +6,11 @@ import {
   getCountriesForPackages,
   getPackageById,
   getPackageDays,
+  getPackageImages,
 } from "../../actions";
 import { PackageForm } from "../../package-form";
 import { PackageDaysEditor } from "../../package-days-editor";
+import { PackageImagesSection } from "../../package-images-section";
 
 export default async function EditPackagePage({
   params,
@@ -25,7 +27,10 @@ export default async function EditPackagePage({
 
   if (!pkg) notFound();
 
-  const days = await getPackageDays(pkg.id);
+  const [days, images] = await Promise.all([
+    getPackageDays(pkg.id),
+    getPackageImages(pkg.id),
+  ]);
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -70,6 +75,23 @@ export default async function EditPackagePage({
           </p>
         </div>
         <PackageDaysEditor packageId={pkg.id} initialDays={days} />
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Images</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Saved separately from content and itinerary
+          </p>
+        </div>
+        <PackageImagesSection
+          packageId={pkg.id}
+          initialImages={images.map((img) => ({
+            url: img.url,
+            isCover: img.isCover,
+            sortOrder: img.sortOrder ?? 0,
+          }))}
+        />
       </div>
     </div>
   );

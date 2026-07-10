@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { packages, countries, packageDays } from "@/lib/db/schema";
+import { packages, countries, packageDays, packageImages } from "@/lib/db/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
@@ -28,6 +28,12 @@ export type PackageDayInput = {
   title: string;
   description?: string | null;
   locationName?: string | null;
+};
+
+export type PackageImageInput = {
+  url: string;
+  isCover: boolean;
+  sortOrder: number;
 };
 
 function isUniqueViolation(error: unknown): boolean {
@@ -263,5 +269,68 @@ export async function savePackageDays(
   } catch (error) {
     console.error("savePackageDays error:", error);
     return { success: false as const, error: "Failed to save itinerary" };
+  }
+}
+
+export async function getPackageImages(packageId: string) {
+  await requireRole([...ROLES]);
+
+  return db
+    .select({
+      url: packageImages.url,
+      isCover: packageImages.isCover,
+      sortOrder: packageImages.sortOrder,
+    })
+    .from(packageImages)
+    .where(eq(packageImages.packageId, packageId))
+    .orderBy(asc(packageImages.sortOrder));
+}
+
+export async function savePackageImages(
+  packageId: string,
+  images: PackageImageInput[]
+) {
+  await requireRole([...ROLES]);
+
+  try {
+    const normalized = images.map((img, idx) => ({
+      url: img.url,
+      isCover: img.isCover,
+      sortOrder: idx,
+    }));
+
+    if (normalized.length > 0) {
+      const firstCoverIdx = normalized.findIndex((img) => img.isCover);
+      if (firstCoverIdx === -1) {
+        normalized[0].isCover = true;
+      } else {
+        for (let i = 0; i < normalized.length; i++) {
+          normalized[i].isCover = i === firstCoverIdx;
+        }
+      }
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(packageImages)
+        .where(eq(packageImages.packageId, packageId));
+      if (normalized.length > 0) {
+        await tx.insert(packageImages).values(
+          normalized.map((img) => ({
+            packageId,
+            url: img.url,
+            isCover: img.isCover,
+            sortOrder: img.sortOrder,
+          }))
+        );
+      }
+    });
+
+    revalidatePath(`/admin/packages/${packageId}/edit`);
+    revalidatePath("/admin/packages");
+    return { success: true as const };
+  } catch (error) {
+    console.error("savePackageImages error:", error);
+    return { success: false as const, error: "Failed to save images" };
   }
 }
