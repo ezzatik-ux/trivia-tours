@@ -13,6 +13,7 @@ import { ImageGallery } from "@/components/ui/image-gallery";
 import { CountryFlag } from "@/components/ui/country-flag";
 import { getPackageDetailBySlug } from "./actions";
 import { PackageItinerary } from "./package-itinerary";
+import { PackageAccommodations } from "./package-accommodations";
 import { PackageQuotePanel } from "./package-quote-panel";
 import { PackageShareActions } from "./package-share-actions";
 
@@ -146,6 +147,12 @@ export default async function PackageDetailPage({
           {pkg.days.length > 0 && (
             <Section title="Itinerary">
               <PackageItinerary days={pkg.days} />
+            </Section>
+          )}
+
+          {pkg.accommodations.length > 0 && (
+            <Section title="Accommodation">
+              <PackageAccommodations accommodations={pkg.accommodations} />
             </Section>
           )}
 

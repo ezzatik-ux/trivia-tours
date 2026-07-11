@@ -7,6 +7,8 @@ import {
   packageDayImages,
   packageImages,
   packageRates,
+  packageAccommodations,
+  packageAccommodationImages,
   countries,
 } from "@/lib/db/schema";
 import {
@@ -122,6 +124,52 @@ export async function getPackageDetailBySlug(slug: string) {
     images: imagesByDay.get(d.id) ?? [],
   }));
 
+  const accommodations = await db
+    .select({
+      id: packageAccommodations.id,
+      hotelName: packageAccommodations.hotelName,
+      cityName: packageAccommodations.cityName,
+      nights: packageAccommodations.nights,
+      boardBasis: packageAccommodations.boardBasis,
+      startDate: packageAccommodations.startDate,
+    })
+    .from(packageAccommodations)
+    .where(eq(packageAccommodations.packageId, pkg.id))
+    .orderBy(asc(packageAccommodations.sortOrder));
+
+  const accIds = accommodations.map((a) => a.id);
+  const accImageRows = accIds.length
+    ? await db
+        .select({
+          accommodationId: packageAccommodationImages.accommodationId,
+          url: packageAccommodationImages.url,
+          isCover: packageAccommodationImages.isCover,
+          sortOrder: packageAccommodationImages.sortOrder,
+        })
+        .from(packageAccommodationImages)
+        .where(inArray(packageAccommodationImages.accommodationId, accIds))
+        .orderBy(asc(packageAccommodationImages.sortOrder))
+    : [];
+
+  const imagesByAcc = new Map<
+    string,
+    { url: string; isCover: boolean; sortOrder: number }[]
+  >();
+  for (const row of accImageRows) {
+    const list = imagesByAcc.get(row.accommodationId) ?? [];
+    list.push({
+      url: row.url,
+      isCover: row.isCover,
+      sortOrder: row.sortOrder ?? 0,
+    });
+    imagesByAcc.set(row.accommodationId, list);
+  }
+
+  const accommodationsWithImages = accommodations.map((a) => ({
+    ...a,
+    images: imagesByAcc.get(a.id) ?? [],
+  }));
+
   return {
     id: pkg.id,
     name: pkg.name,
@@ -139,6 +187,7 @@ export async function getPackageDetailBySlug(slug: string) {
     countryName: country?.name ?? null,
     countryCode: country?.code ?? null,
     days: daysWithImages,
+    accommodations: accommodationsWithImages,
     images,
     fromPrice: priceRows[0]?.fromPrice ?? null,
   };
