@@ -50,6 +50,16 @@ export function PackageBrowseCard({
             <span>{countryName}</span>
           </div>
         )}
+
+        {/* Duration badge top-right */}
+        {durationDays ? (
+          <div className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-trivia-600 text-white rounded-full text-xs font-semibold shadow-sm">
+            <Clock className="w-3.5 h-3.5" />
+            <span>
+              {durationDays} {durationDays === 1 ? "Day" : "Days"}
+            </span>
+          </div>
+        ) : null}
       </div>
 
       {/* Content */}
