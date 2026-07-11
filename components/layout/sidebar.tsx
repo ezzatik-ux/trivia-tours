@@ -17,6 +17,7 @@ import {
   Building2,
   Hotel,
   Luggage,
+  MapPin,
   ChevronDown,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
@@ -65,6 +66,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Manage Hotels", href: "/admin/hotels", icon: Hotel, roles: ["PRODUCT", "ADMIN"] },
       { label: "Transfers", href: "/admin/transfers", icon: Car, roles: ["OPS", "PRODUCT", "ADMIN"] },
       { label: "Manage Packages", href: "/admin/packages", icon: Luggage, roles: ["OPS", "PRODUCT", "ADMIN"] },
+      { label: "Manage Cities", href: "/admin/cities", icon: MapPin, roles: ["OPS", "PRODUCT", "ADMIN"] },
       { label: "Suppliers", href: "/suppliers", icon: Building2, roles: ["PRODUCT", "ADMIN"] },
     ],
   },

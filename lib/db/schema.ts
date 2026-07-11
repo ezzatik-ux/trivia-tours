@@ -125,6 +125,7 @@ import {
         .notNull()
         .references(() => countries.id, { onDelete: "cascade" }),
       name: varchar("name", { length: 100 }).notNull(),
+      code: varchar("code", { length: 3 }).unique(),
       isActive: boolean("is_active").notNull().default(true),
       createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
