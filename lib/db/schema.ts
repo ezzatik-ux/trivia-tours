@@ -988,6 +988,7 @@ import {
       id: uuid("id").primaryKey().defaultRandom(),
       slug: varchar("slug", { length: 255 }).notNull().unique(),
       name: varchar("name", { length: 255 }).notNull(),
+      code: varchar("code", { length: 20 }).unique(),
       countryId: uuid("country_id")
         .notNull()
         .references(() => countries.id),

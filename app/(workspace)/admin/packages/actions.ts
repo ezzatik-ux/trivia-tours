@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { packages, countries, cities, packageDays, packageImages, packageDayImages, packageRates } from "@/lib/db/schema";
-import { eq, desc, asc, and, inArray } from "drizzle-orm";
+import { eq, desc, asc, and, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
 
@@ -206,6 +206,32 @@ async function validateCityBelongsToCountry(
   return !!row && row.countryId === countryId;
 }
 
+/**
+ * Builds a package code: {CITY_CODE}{DURATION}D FP {SERIAL} with no spaces,
+ * e.g. DPS + 8 + D + FP + 001 => "DPS8DFP001".
+ * Returns null when the city has no code (caller surfaces a friendly error).
+ * The sequence value is consumed on generation; a skipped serial is acceptable
+ * (sequences are not gap-free) and is never reclaimed.
+ */
+async function generatePackageCode(
+  cityId: string,
+  durationDays: number
+): Promise<string | null> {
+  const [cityRow] = await db
+    .select({ code: cities.code })
+    .from(cities)
+    .where(eq(cities.id, cityId))
+    .limit(1);
+
+  const cityCode = cityRow?.code?.trim();
+  if (!cityCode) return null;
+
+  const rows = await db.execute(sql`SELECT nextval('package_code_seq') AS n`);
+  const n = Number((rows as unknown as Array<{ n: number | string }>)[0].n);
+
+  return `${cityCode.toUpperCase()}${durationDays}DFP${String(n).padStart(3, "0")}`;
+}
+
 export async function createPackage(input: PackageInput) {
   const user = await requireRole([...ROLES]);
 
@@ -229,9 +255,22 @@ export async function createPackage(input: PackageInput) {
   }
 
   try {
+    const generatedCode = await generatePackageCode(
+      input.cityId,
+      input.durationDays
+    );
+    if (!generatedCode) {
+      return {
+        success: false as const,
+        error:
+          "Selected city has no code — set a 3-letter code in Manage Cities first",
+      };
+    }
+
     await db.insert(packages).values({
       name: input.name.trim(),
       slug: input.slug.trim(),
+      code: generatedCode,
       countryId: input.countryId,
       cityId: input.cityId ?? null,
       shortDesc: input.shortDesc?.trim() || null,
@@ -284,11 +323,33 @@ export async function updatePackage(id: string, input: PackageInput) {
   }
 
   try {
+    const [current] = await db
+      .select({ code: packages.code })
+      .from(packages)
+      .where(eq(packages.id, id))
+      .limit(1);
+
+    let generatedCode: string | null = null;
+    if (current && !current.code) {
+      generatedCode = await generatePackageCode(
+        input.cityId,
+        input.durationDays
+      );
+      if (!generatedCode) {
+        return {
+          success: false as const,
+          error:
+            "Selected city has no code — set a 3-letter code in Manage Cities first",
+        };
+      }
+    }
+
     await db
       .update(packages)
       .set({
         name: input.name.trim(),
         slug: input.slug.trim(),
+        ...(generatedCode ? { code: generatedCode } : {}),
         countryId: input.countryId,
         cityId: input.cityId ?? null,
         shortDesc: input.shortDesc?.trim() || null,
