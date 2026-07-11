@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { packages, countries, cities, packageDays, packageImages, packageDayImages, packageRates } from "@/lib/db/schema";
+import { packages, countries, cities, packageDays, packageImages, packageDayImages, packageRates, packageAccommodations } from "@/lib/db/schema";
 import { eq, desc, asc, and, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
@@ -36,6 +36,15 @@ export type PackageImageInput = {
   url: string;
   isCover: boolean;
   sortOrder: number;
+};
+
+export type AccommodationInput = {
+  id?: string; // present = existing; absent = new
+  hotelName: string;
+  cityName?: string | null;
+  nights: number;
+  boardBasis: "RO" | "BB" | "HB" | "FB" | "AI";
+  startDate?: string | null;
 };
 
 export type PackageRateInput = {
@@ -611,6 +620,123 @@ export async function savePackageDayImages(
   } catch (error) {
     console.error("savePackageDayImages error:", error);
     return { success: false as const, error: "Failed to save day images" };
+  }
+}
+
+export async function getAccommodations(packageId: string) {
+  await requireRole([...ROLES]);
+
+  return db
+    .select({
+      id: packageAccommodations.id,
+      hotelName: packageAccommodations.hotelName,
+      cityName: packageAccommodations.cityName,
+      nights: packageAccommodations.nights,
+      boardBasis: packageAccommodations.boardBasis,
+      startDate: packageAccommodations.startDate,
+    })
+    .from(packageAccommodations)
+    .where(eq(packageAccommodations.packageId, packageId))
+    .orderBy(asc(packageAccommodations.sortOrder));
+}
+
+export async function saveAccommodations(
+  packageId: string,
+  items: AccommodationInput[]
+) {
+  await requireRole([...ROLES]);
+
+  for (const item of items) {
+    if (!item.hotelName?.trim()) {
+      return { success: false as const, error: "Every hotel needs a name" };
+    }
+    if (!Number.isFinite(item.nights) || item.nights < 1) {
+      return { success: false as const, error: "Nights must be at least 1" };
+    }
+  }
+
+  try {
+    await db.transaction(async (tx) => {
+      const existing = await tx
+        .select({ id: packageAccommodations.id })
+        .from(packageAccommodations)
+        .where(eq(packageAccommodations.packageId, packageId));
+      const existingIds = new Set(existing.map((r) => r.id));
+
+      const incomingIds = new Set(
+        items.map((i) => i.id).filter((id): id is string => !!id)
+      );
+
+      // Delete removed (cascade removes their images — correct).
+      const toDelete = [...existingIds].filter((id) => !incomingIds.has(id));
+      if (toDelete.length > 0) {
+        await tx
+          .delete(packageAccommodations)
+          .where(
+            and(
+              eq(packageAccommodations.packageId, packageId),
+              inArray(packageAccommodations.id, toDelete)
+            )
+          );
+      }
+
+      // Direct sort_order = i (no unique constraint → no two-phase offset).
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const hotelName = item.hotelName.trim();
+        const cityName = item.cityName?.trim() || null;
+        const startDate = item.startDate || null;
+
+        if (item.id && existingIds.has(item.id)) {
+          await tx
+            .update(packageAccommodations)
+            .set({
+              sortOrder: i,
+              hotelName,
+              cityName,
+              nights: item.nights,
+              boardBasis: item.boardBasis,
+              startDate,
+            })
+            .where(
+              and(
+                eq(packageAccommodations.id, item.id),
+                eq(packageAccommodations.packageId, packageId)
+              )
+            );
+        } else {
+          await tx.insert(packageAccommodations).values({
+            packageId,
+            sortOrder: i,
+            hotelName,
+            cityName,
+            nights: item.nights,
+            boardBasis: item.boardBasis,
+            startDate,
+          });
+        }
+      }
+    });
+
+    const savedItems = await db
+      .select({
+        id: packageAccommodations.id,
+        hotelName: packageAccommodations.hotelName,
+        cityName: packageAccommodations.cityName,
+        nights: packageAccommodations.nights,
+        boardBasis: packageAccommodations.boardBasis,
+        startDate: packageAccommodations.startDate,
+      })
+      .from(packageAccommodations)
+      .where(eq(packageAccommodations.packageId, packageId))
+      .orderBy(asc(packageAccommodations.sortOrder));
+
+    revalidatePath(`/admin/packages/${packageId}/edit`);
+    revalidatePath("/admin/packages");
+    return { success: true as const, items: savedItems };
+  } catch (error) {
+    console.error("saveAccommodations error:", error);
+    return { success: false as const, error: "Failed to save accommodations" };
   }
 }
 

@@ -7,11 +7,13 @@ import {
   getCitiesForPackages,
   getPackageById,
   getPackageDays,
+  getAccommodations,
   getPackageImages,
   getPackageRates,
 } from "../../actions";
 import { PackageForm } from "../../package-form";
 import { PackageDaysEditor } from "../../package-days-editor";
+import { PackageAccommodationsEditor } from "../../package-accommodations-editor";
 import { PackageImagesSection } from "../../package-images-section";
 import { PackageRatesSection } from "../../package-rates-section";
 
@@ -31,8 +33,9 @@ export default async function EditPackagePage({
 
   if (!pkg) notFound();
 
-  const [days, images, rates] = await Promise.all([
+  const [days, accommodations, images, rates] = await Promise.all([
     getPackageDays(pkg.id),
+    getAccommodations(pkg.id),
     getPackageImages(pkg.id),
     getPackageRates(pkg.id),
   ]);
@@ -83,6 +86,19 @@ export default async function EditPackagePage({
           </p>
         </div>
         <PackageDaysEditor packageId={pkg.id} initialDays={days} />
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-900">Accommodations</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Hotels for this package, saved independently
+          </p>
+        </div>
+        <PackageAccommodationsEditor
+          packageId={pkg.id}
+          initialItems={accommodations}
+        />
       </div>
 
       <div className="space-y-3">

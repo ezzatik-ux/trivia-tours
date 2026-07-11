@@ -1093,6 +1093,48 @@ import {
     })
   );
 
+  export const boardBasisEnum = pgEnum("board_basis", ["RO", "BB", "HB", "FB", "AI"]);
+
+  export const packageAccommodations = pgTable(
+    "package_accommodations",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      packageId: uuid("package_id")
+        .notNull()
+        .references(() => packages.id, { onDelete: "cascade" }),
+      sortOrder: integer("sort_order").notNull().default(0),
+      hotelName: varchar("hotel_name", { length: 255 }).notNull(),
+      cityName: varchar("city_name", { length: 255 }),
+      nights: integer("nights").notNull().default(1),
+      boardBasis: boardBasisEnum("board_basis").notNull().default("BB"),
+      startDate: date("start_date"),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      packageIdx: index("package_accommodations_package_idx").on(t.packageId),
+    })
+  );
+
+  export const packageAccommodationImages = pgTable(
+    "package_accommodation_images",
+    {
+      id: uuid("id").primaryKey().defaultRandom(),
+      accommodationId: uuid("accommodation_id")
+        .notNull()
+        .references(() => packageAccommodations.id, { onDelete: "cascade" }),
+      url: text("url").notNull(),
+      altText: varchar("alt_text", { length: 255 }),
+      isCover: boolean("is_cover").notNull().default(false),
+      sortOrder: integer("sort_order").default(0),
+      createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (t) => ({
+      accommodationIdx: index("package_accommodation_images_accommodation_idx").on(
+        t.accommodationId
+      ),
+    })
+  );
+
   /* ---- Package relations ---- */
   export const packagesRelations = relations(packages, ({ one, many }) => ({
     country: one(countries, { fields: [packages.countryId], references: [countries.id] }),
@@ -1100,6 +1142,7 @@ import {
     days: many(packageDays),
     images: many(packageImages),
     rates: many(packageRates),
+    accommodations: many(packageAccommodations),
   }));
 
   export const packageDaysRelations = relations(packageDays, ({ one, many }) => ({
@@ -1118,5 +1161,26 @@ import {
   export const packageRatesRelations = relations(packageRates, ({ one }) => ({
     package: one(packages, { fields: [packageRates.packageId], references: [packages.id] }),
   }));
+
+  export const packageAccommodationsRelations = relations(
+    packageAccommodations,
+    ({ one, many }) => ({
+      package: one(packages, {
+        fields: [packageAccommodations.packageId],
+        references: [packages.id],
+      }),
+      images: many(packageAccommodationImages),
+    })
+  );
+
+  export const packageAccommodationImagesRelations = relations(
+    packageAccommodationImages,
+    ({ one }) => ({
+      accommodation: one(packageAccommodations, {
+        fields: [packageAccommodationImages.accommodationId],
+        references: [packageAccommodations.id],
+      }),
+    })
+  );
 
 export * from "./auth-schema";
