@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { requireRole } from "@/lib/auth-utils";
-import { getCountriesForPackages } from "../actions";
+import { getCountriesForPackages, getCitiesForPackages } from "../actions";
 import { PackageForm } from "../package-form";
 
 export default async function NewPackagePage() {
   await requireRole(["OPS", "PRODUCT", "ADMIN"]);
-  const countries = await getCountriesForPackages();
+  const [countries, cities] = await Promise.all([
+    getCountriesForPackages(),
+    getCitiesForPackages(),
+  ]);
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -25,7 +28,7 @@ export default async function NewPackagePage() {
         </p>
       </div>
 
-      <PackageForm editing={null} countries={countries} />
+      <PackageForm editing={null} countries={countries} cities={cities} />
     </div>
   );
 }

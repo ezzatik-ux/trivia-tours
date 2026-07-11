@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth-utils";
 import {
   getCountriesForPackages,
+  getCitiesForPackages,
   getPackageById,
   getPackageDays,
   getPackageImages,
@@ -22,9 +23,10 @@ export default async function EditPackagePage({
   await requireRole(["OPS", "PRODUCT", "ADMIN"]);
 
   const { id } = await params;
-  const [pkg, countries] = await Promise.all([
+  const [pkg, countries, cities] = await Promise.all([
     getPackageById(id),
     getCountriesForPackages(),
+    getCitiesForPackages(),
   ]);
 
   if (!pkg) notFound();
@@ -56,6 +58,7 @@ export default async function EditPackagePage({
           name: pkg.name,
           slug: pkg.slug,
           countryId: pkg.countryId,
+          cityId: pkg.cityId,
           shortDesc: pkg.shortDesc,
           overview: pkg.overview,
           durationDays: pkg.durationDays,
@@ -68,6 +71,7 @@ export default async function EditPackagePage({
           status: pkg.status,
         }}
         countries={countries}
+        cities={cities}
       />
 
       <div className="space-y-3">

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { packages, countries, packageDays, packageImages, packageDayImages, packageRates } from "@/lib/db/schema";
+import { packages, countries, cities, packageDays, packageImages, packageDayImages, packageRates } from "@/lib/db/schema";
 import { eq, desc, asc, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
@@ -12,6 +12,7 @@ export type PackageInput = {
   name: string;
   slug: string;
   countryId: string;
+  cityId?: string | null;
   shortDesc?: string | null;
   overview?: string | null;
   durationDays: number;
@@ -141,6 +142,7 @@ export async function getPackageById(id: string) {
       name: packages.name,
       slug: packages.slug,
       countryId: packages.countryId,
+      cityId: packages.cityId,
       shortDesc: packages.shortDesc,
       overview: packages.overview,
       durationDays: packages.durationDays,
@@ -177,6 +179,33 @@ export async function getCountriesForPackages() {
     .orderBy(countries.name);
 }
 
+export async function getCitiesForPackages() {
+  await requireRole([...ROLES]);
+
+  return db
+    .select({
+      id: cities.id,
+      name: cities.name,
+      code: cities.code,
+      countryId: cities.countryId,
+    })
+    .from(cities)
+    .where(eq(cities.isActive, true))
+    .orderBy(cities.name);
+}
+
+async function validateCityBelongsToCountry(
+  cityId: string,
+  countryId: string
+): Promise<boolean> {
+  const [row] = await db
+    .select({ countryId: cities.countryId })
+    .from(cities)
+    .where(eq(cities.id, cityId))
+    .limit(1);
+  return !!row && row.countryId === countryId;
+}
+
 export async function createPackage(input: PackageInput) {
   const user = await requireRole([...ROLES]);
 
@@ -185,11 +214,26 @@ export async function createPackage(input: PackageInput) {
     return { success: false as const, error: validationError };
   }
 
+  if (!input.cityId) {
+    return { success: false as const, error: "City is required" };
+  }
+
+  {
+    const ok = await validateCityBelongsToCountry(input.cityId, input.countryId);
+    if (!ok) {
+      return {
+        success: false as const,
+        error: "Selected city does not belong to the chosen country",
+      };
+    }
+  }
+
   try {
     await db.insert(packages).values({
       name: input.name.trim(),
       slug: input.slug.trim(),
       countryId: input.countryId,
+      cityId: input.cityId ?? null,
       shortDesc: input.shortDesc?.trim() || null,
       overview: input.overview?.trim() || null,
       durationDays: input.durationDays,
@@ -225,6 +269,20 @@ export async function updatePackage(id: string, input: PackageInput) {
     return { success: false as const, error: validationError };
   }
 
+  if (!input.cityId) {
+    return { success: false as const, error: "City is required" };
+  }
+
+  {
+    const ok = await validateCityBelongsToCountry(input.cityId, input.countryId);
+    if (!ok) {
+      return {
+        success: false as const,
+        error: "Selected city does not belong to the chosen country",
+      };
+    }
+  }
+
   try {
     await db
       .update(packages)
@@ -232,6 +290,7 @@ export async function updatePackage(id: string, input: PackageInput) {
         name: input.name.trim(),
         slug: input.slug.trim(),
         countryId: input.countryId,
+        cityId: input.cityId ?? null,
         shortDesc: input.shortDesc?.trim() || null,
         overview: input.overview?.trim() || null,
         durationDays: input.durationDays,

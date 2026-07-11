@@ -24,6 +24,7 @@ type PackageEditing = {
   name: string;
   slug: string;
   countryId: string;
+  cityId: string | null;
   shortDesc: string | null;
   overview: string | null;
   durationDays: number;
@@ -36,9 +37,17 @@ type PackageEditing = {
   status: PackageStatus;
 };
 
+type City = {
+  id: string;
+  name: string;
+  code: string | null;
+  countryId: string;
+};
+
 type Props = {
   editing: PackageEditing | null;
   countries: Country[];
+  cities: City[];
 };
 
 /**
@@ -53,7 +62,7 @@ function slugify(text: string): string {
     .replace(/-+/g, "-");
 }
 
-export function PackageForm({ editing, countries }: Props) {
+export function PackageForm({ editing, countries, cities }: Props) {
   const router = useRouter();
   const isEdit = !!editing;
   const [isPending, startTransition] = useTransition();
@@ -63,6 +72,7 @@ export function PackageForm({ editing, countries }: Props) {
   const [slug, setSlug] = useState(editing?.slug ?? "");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(isEdit);
   const [countryId, setCountryId] = useState(editing?.countryId ?? "");
+  const [cityId, setCityId] = useState(editing?.cityId ?? "");
   const [shortDesc, setShortDesc] = useState(editing?.shortDesc ?? "");
   const [overview, setOverview] = useState(editing?.overview ?? "");
   const [durationDays, setDurationDays] = useState(
@@ -118,6 +128,10 @@ export function PackageForm({ editing, countries }: Props) {
       setError("Please select a country");
       return;
     }
+    if (!cityId) {
+      setError("Please select a city");
+      return;
+    }
 
     const days = parseInt(durationDays, 10);
     if (!Number.isFinite(days) || days < 1) {
@@ -134,6 +148,7 @@ export function PackageForm({ editing, countries }: Props) {
       name,
       slug,
       countryId,
+      cityId: cityId || null,
       shortDesc: shortDesc || null,
       overview: overview || null,
       durationDays: days,
@@ -201,7 +216,10 @@ export function PackageForm({ editing, countries }: Props) {
             <Label required>Country</Label>
             <select
               value={countryId}
-              onChange={(e) => setCountryId(e.target.value)}
+              onChange={(e) => {
+                setCountryId(e.target.value);
+                setCityId("");
+              }}
               disabled={isPending}
               className="form-input bg-white"
             >
@@ -211,6 +229,26 @@ export function PackageForm({ editing, countries }: Props) {
                   {countryFlagEmoji(c.code)} {c.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <Label required>City</Label>
+            <select
+              value={cityId}
+              onChange={(e) => setCityId(e.target.value)}
+              disabled={isPending || !countryId}
+              className="form-input bg-white"
+            >
+              <option value="">-- Select City --</option>
+              {cities
+                .filter((c) => c.countryId === countryId)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                    {c.code ? ` (${c.code})` : ""}
+                  </option>
+                ))}
             </select>
           </div>
 
