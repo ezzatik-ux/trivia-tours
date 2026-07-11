@@ -68,7 +68,7 @@ export function PackageAccommodations({ accommodations }: Props) {
                   key={i}
                   src={img.url}
                   alt={`${acc.hotelName} ${i + 1}`}
-                  className="w-24 h-20 rounded-lg object-cover flex-shrink-0 border border-slate-200"
+                  className="w-32 h-24 rounded-lg object-cover flex-shrink-0 border border-slate-200"
                 />
               ))}
             </div>

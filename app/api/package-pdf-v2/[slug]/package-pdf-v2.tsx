@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.4,
   },
   dayImageRow: { flexDirection: "row", gap: 6, marginTop: 6 },
-  dayThumb: { width: 60, height: 60, objectFit: "cover", borderRadius: 4 },
+  dayThumb: { width: 80, height: 60, objectFit: "cover", borderRadius: 4 },
   accTable: {
     borderWidth: 1,
     borderColor: COLORS.border,

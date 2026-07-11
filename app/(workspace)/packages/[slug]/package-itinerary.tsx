@@ -48,7 +48,7 @@ export function PackageItinerary({ days }: Props) {
                     key={i}
                     src={img.url}
                     alt={`${day.title} photo ${i + 1}`}
-                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0 border border-slate-200"
+                    className="w-32 h-24 rounded-lg object-cover flex-shrink-0 border border-slate-200"
                   />
                 ))}
               </div>
