@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { packages, countries, cities, packageDays, packageImages, packageDayImages, packageRates, packageAccommodations } from "@/lib/db/schema";
+import { packages, countries, cities, packageDays, packageImages, packageDayImages, packageRates, packageAccommodations, packageAccommodationImages } from "@/lib/db/schema";
 import { eq, desc, asc, and, inArray, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/auth-utils";
@@ -626,7 +626,7 @@ export async function savePackageDayImages(
 export async function getAccommodations(packageId: string) {
   await requireRole([...ROLES]);
 
-  return db
+  const rows = await db
     .select({
       id: packageAccommodations.id,
       hotelName: packageAccommodations.hotelName,
@@ -638,6 +638,40 @@ export async function getAccommodations(packageId: string) {
     .from(packageAccommodations)
     .where(eq(packageAccommodations.packageId, packageId))
     .orderBy(asc(packageAccommodations.sortOrder));
+
+  const accIds = rows.map((r) => r.id);
+
+  const imageRows = accIds.length
+    ? await db
+        .select({
+          accommodationId: packageAccommodationImages.accommodationId,
+          url: packageAccommodationImages.url,
+          isCover: packageAccommodationImages.isCover,
+          sortOrder: packageAccommodationImages.sortOrder,
+        })
+        .from(packageAccommodationImages)
+        .where(inArray(packageAccommodationImages.accommodationId, accIds))
+        .orderBy(asc(packageAccommodationImages.sortOrder))
+    : [];
+
+  const imagesByAcc = new Map<
+    string,
+    { url: string; isCover: boolean; sortOrder: number }[]
+  >();
+  for (const row of imageRows) {
+    const list = imagesByAcc.get(row.accommodationId) ?? [];
+    list.push({
+      url: row.url,
+      isCover: row.isCover,
+      sortOrder: row.sortOrder ?? 0,
+    });
+    imagesByAcc.set(row.accommodationId, list);
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    images: imagesByAcc.get(r.id) ?? [],
+  }));
 }
 
 export async function saveAccommodations(
@@ -737,6 +771,67 @@ export async function saveAccommodations(
   } catch (error) {
     console.error("saveAccommodations error:", error);
     return { success: false as const, error: "Failed to save accommodations" };
+  }
+}
+
+export async function saveAccommodationImages(
+  accommodationId: string,
+  images: PackageImageInput[]
+) {
+  await requireRole([...ROLES]);
+
+  const [acc] = await db
+    .select({
+      id: packageAccommodations.id,
+      packageId: packageAccommodations.packageId,
+    })
+    .from(packageAccommodations)
+    .where(eq(packageAccommodations.id, accommodationId))
+    .limit(1);
+
+  if (!acc) {
+    return { success: false as const, error: "Accommodation not found" };
+  }
+
+  try {
+    const normalized = images.map((img, idx) => ({
+      url: img.url,
+      isCover: img.isCover,
+      sortOrder: idx,
+    }));
+
+    if (normalized.length > 0) {
+      const firstCoverIdx = normalized.findIndex((img) => img.isCover);
+      if (firstCoverIdx === -1) {
+        normalized[0].isCover = true;
+      } else {
+        for (let i = 0; i < normalized.length; i++) {
+          normalized[i].isCover = i === firstCoverIdx;
+        }
+      }
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .delete(packageAccommodationImages)
+        .where(eq(packageAccommodationImages.accommodationId, accommodationId));
+      if (normalized.length > 0) {
+        await tx.insert(packageAccommodationImages).values(
+          normalized.map((img) => ({
+            accommodationId,
+            url: img.url,
+            isCover: img.isCover,
+            sortOrder: img.sortOrder,
+          }))
+        );
+      }
+    });
+
+    revalidatePath(`/admin/packages/${acc.packageId}/edit`);
+    return { success: true as const };
+  } catch (error) {
+    console.error("saveAccommodationImages error:", error);
+    return { success: false as const, error: "Failed to save hotel images" };
   }
 }
 

@@ -3,7 +3,15 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, ArrowUp, ArrowDown, Loader2, Check, Hotel } from "lucide-react";
-import { saveAccommodations, type AccommodationInput } from "./actions";
+import {
+  ProductImageManager,
+  type ProductImage,
+} from "@/components/ui/product-image-manager";
+import {
+  saveAccommodations,
+  saveAccommodationImages,
+  type AccommodationInput,
+} from "./actions";
 
 type BoardBasis = "RO" | "BB" | "HB" | "FB" | "AI";
 
@@ -23,6 +31,7 @@ type AccRow = {
   nights: number;
   boardBasis: BoardBasis;
   startDate: string;
+  images: ProductImage[];
 };
 
 type InitialItem = {
@@ -32,6 +41,7 @@ type InitialItem = {
   nights: number;
   boardBasis: BoardBasis;
   startDate?: string | null;
+  images?: ProductImage[];
 };
 
 type Props = {
@@ -44,6 +54,7 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [photosSavedKey, setPhotosSavedKey] = useState<string | null>(null);
   const [items, setItems] = useState<AccRow[]>(
     initialItems.map((it) => ({
       id: it.id,
@@ -53,6 +64,7 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
       nights: it.nights ?? 1,
       boardBasis: it.boardBasis ?? "BB",
       startDate: it.startDate ?? "",
+      images: it.images ?? [],
     }))
   );
 
@@ -72,9 +84,34 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
         nights: 1,
         boardBasis: "BB",
         startDate: "",
+        images: [],
       },
     ]);
     setSaved(false);
+  }
+
+  function updateAccImages(index: number, imgs: ProductImage[]) {
+    setItems((prev) =>
+      prev.map((it, i) => (i === index ? { ...it, images: imgs } : it))
+    );
+    setPhotosSavedKey(null);
+  }
+
+  function handleSaveAccImages(index: number) {
+    const item = items[index];
+    if (!item.id) return;
+    const accId = item.id;
+    setError(null);
+    setPhotosSavedKey(null);
+
+    startTransition(async () => {
+      const result = await saveAccommodationImages(accId, item.images);
+      if (result.success) {
+        setPhotosSavedKey(item.clientKey);
+      } else {
+        setError(result.error || "Failed to save photos");
+      }
+    });
   }
 
   function removeRow(index: number) {
@@ -306,6 +343,39 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
                   />
                 </div>
               </div>
+
+              {item.id ? (
+                <div className="pt-3 border-t border-slate-200 space-y-3">
+                  <ProductImageManager
+                    images={item.images}
+                    onChange={(imgs) => updateAccImages(index, imgs)}
+                    disabled={isPending}
+                  />
+                  <div className="flex items-center justify-end gap-3">
+                    {photosSavedKey === item.clientKey && !isPending && (
+                      <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                        <Check className="w-4 h-4" />
+                        Photos saved
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleSaveAccImages(index)}
+                      disabled={isPending}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-sm font-medium disabled:opacity-50"
+                    >
+                      {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Save photos
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="pt-3 border-t border-slate-200">
+                  <p className="text-sm text-slate-400 italic">
+                    Save accommodations first to add photos to this hotel.
+                  </p>
+                </div>
+              )}
             </div>
           ))}
         </div>
