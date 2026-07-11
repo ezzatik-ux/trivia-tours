@@ -75,16 +75,17 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     fontSize: 10,
     color: COLORS.dark,
-    paddingTop: 72,
-    paddingBottom: 56,
+    // Clear fixed header (~36pt) + footer (~52pt) so content never overlaps
+    paddingTop: 56,
+    paddingBottom: 64,
     paddingHorizontal: 40,
   },
+  // Thin repeating bar — pinned top of every page (separate from page-1 ref strip)
   pageHeader: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: 48,
     paddingHorizontal: 40,
     paddingVertical: 10,
     flexDirection: "row",
@@ -280,22 +281,22 @@ const styles = StyleSheet.create({
     color: "#78350f",
     lineHeight: 1.4,
   },
+  // Pinned bottom of every page — absolute only (no flow/marginTop tricks)
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: 48,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 40,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-end",
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
-  footerCol: { flexDirection: "column", flex: 1 },
+  footerCol: { flexDirection: "column", maxWidth: "70%" },
   footerText: {
     fontSize: 7,
     color: COLORS.textGray,
@@ -306,11 +307,6 @@ const styles = StyleSheet.create({
     color: COLORS.dark,
     fontFamily: "Helvetica-Bold",
     marginBottom: 1,
-  },
-  footerRight: {
-    flexDirection: "column",
-    alignItems: "flex-end",
-    justifyContent: "center",
   },
   pageNumber: {
     fontSize: 8,
@@ -579,26 +575,22 @@ export function PackagePDFv2({ pkg, qrDataUrl }: Props) {
           </View>
         ) : null}
 
-        {/* Fixed footer — repeats every page with contact + page numbers */}
+        {/* Fixed footer — absolute bottom, repeats every page */}
         <View style={styles.footer} fixed>
           <View style={styles.footerCol}>
             <Text style={styles.footerTextBold}>Trivia Egypt</Text>
             <Text style={styles.footerText}>
               20 El-Kawthar, Dokki, Giza · +20 101 991 1016 ·
-              operations@triviaeg.com
-            </Text>
-            <Text style={styles.footerText}>
-              Issued {formatShortDate(new Date())}
+              operations@triviaeg.com · Issued {formatShortDate(new Date())}
             </Text>
           </View>
-          <View style={styles.footerRight}>
-            <Text
-              style={styles.pageNumber}
-              render={({ pageNumber, totalPages }) =>
-                `Page ${pageNumber} of ${totalPages}`
-              }
-            />
-          </View>
+          <Text
+            style={styles.pageNumber}
+            fixed
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+          />
         </View>
       </Page>
     </Document>
