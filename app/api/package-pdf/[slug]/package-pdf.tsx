@@ -32,8 +32,26 @@ type PackageData = {
   countryName: string | null;
   countryCode: string | null;
   days: Day[];
+  accommodations: {
+    hotelName: string;
+    cityName: string | null;
+    nights: number;
+    boardBasis: "RO" | "BB" | "HB" | "FB" | "AI";
+    startDate: string | null;
+  }[];
   images: { url: string; isCover: boolean }[];
   fromPrice: string | null;
+};
+
+const BOARD_BASIS_LABELS: Record<
+  "RO" | "BB" | "HB" | "FB" | "AI",
+  string
+> = {
+  RO: "Room Only",
+  BB: "Bed & Breakfast",
+  HB: "Half Board",
+  FB: "Full Board",
+  AI: "All Inclusive",
 };
 
 type Props = {
@@ -197,6 +215,46 @@ const styles = StyleSheet.create({
   },
   dayImageRow: { flexDirection: "row", gap: 6, marginTop: 6 },
   dayThumb: { width: 60, height: 60, objectFit: "cover", borderRadius: 4 },
+  accTable: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 4,
+  },
+  accHeaderRow: {
+    flexDirection: "row",
+    backgroundColor: COLORS.bg,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  accRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  accHeaderCell: {
+    fontSize: 7,
+    fontFamily: "Helvetica-Bold",
+    color: COLORS.textGray,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  accCell: {
+    fontSize: 9,
+    color: COLORS.dark,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  accColHotel: { flex: 4 },
+  accColDest: { flex: 3 },
+  accColNights: { flex: 2 },
+  accColBasis: { flex: 2 },
+  accKey: {
+    fontSize: 8,
+    color: COLORS.lightGray,
+    marginTop: 6,
+  },
   twoCol: { flexDirection: "row", gap: 16 },
   col: { flex: 1 },
   priceBox: {
@@ -276,6 +334,10 @@ export function PackagePDF({ pkg, qrDataUrl }: Props) {
   const hasInclusions = pkg.inclusions.length > 0;
   const hasExclusions = pkg.exclusions.length > 0;
   const hasDays = pkg.days.length > 0;
+  const hasAccommodations = pkg.accommodations.length > 0;
+  const usedBoardCodes = Array.from(
+    new Set(pkg.accommodations.map((a) => a.boardBasis))
+  ) as Array<"RO" | "BB" | "HB" | "FB" | "AI">;
 
   const metaParts = [
     pkg.countryName,
@@ -380,6 +442,52 @@ export function PackagePDF({ pkg, qrDataUrl }: Props) {
                   </View>
                 );
               })}
+            </View>
+          ) : null}
+
+          {hasAccommodations ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Accommodation</Text>
+              <View style={styles.accTable}>
+                <View style={styles.accHeaderRow}>
+                  <Text style={[styles.accHeaderCell, styles.accColHotel]}>
+                    Hotel
+                  </Text>
+                  <Text style={[styles.accHeaderCell, styles.accColDest]}>
+                    Destination
+                  </Text>
+                  <Text style={[styles.accHeaderCell, styles.accColNights]}>
+                    Nights
+                  </Text>
+                  <Text style={[styles.accHeaderCell, styles.accColBasis]}>
+                    Basis
+                  </Text>
+                </View>
+                {pkg.accommodations.map((acc, idx) => (
+                  <View key={idx} style={styles.accRow}>
+                    <Text style={[styles.accCell, styles.accColHotel]}>
+                      {acc.hotelName}
+                    </Text>
+                    <Text style={[styles.accCell, styles.accColDest]}>
+                      {acc.cityName || "—"}
+                    </Text>
+                    <Text style={[styles.accCell, styles.accColNights]}>
+                      {acc.nights} {acc.nights === 1 ? "night" : "nights"}
+                    </Text>
+                    <Text style={[styles.accCell, styles.accColBasis]}>
+                      {acc.boardBasis}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              {usedBoardCodes.length > 0 ? (
+                <Text style={styles.accKey}>
+                  Key —{" "}
+                  {usedBoardCodes
+                    .map((code) => `${code}: ${BOARD_BASIS_LABELS[code]}`)
+                    .join(" · ")}
+                </Text>
+              ) : null}
             </View>
           ) : null}
 
