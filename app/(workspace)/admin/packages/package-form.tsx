@@ -23,6 +23,7 @@ type PackageEditing = {
   id: string;
   name: string;
   slug: string;
+  code: string | null;
   countryId: string;
   cityId: string | null;
   shortDesc: string | null;
@@ -180,6 +181,15 @@ export function PackageForm({ editing, countries, cities }: Props) {
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
           <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
+      {editing && editing.code && (
+        <div className="flex items-center gap-2 text-sm text-slate-600">
+          <span className="font-medium">Code:</span>
+          <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+            {editing.code}
+          </span>
         </div>
       )}
 

@@ -19,6 +19,7 @@ type Day = {
 type PackageData = {
   name: string;
   slug: string;
+  code: string | null;
   shortDesc: string | null;
   overview: string | null;
   durationDays: number;
@@ -307,6 +308,9 @@ export function PackagePDF({ pkg, qrDataUrl }: Props) {
           <View style={styles.refLeft}>
             <Text style={styles.refLabel}>Package</Text>
             <Text style={styles.refNumber}>{pkg.name}</Text>
+            {pkg.code ? (
+              <Text style={styles.refMeta}>Reference: {pkg.code}</Text>
+            ) : null}
             {metaParts.length > 0 && (
               <Text style={styles.refMeta}>{metaParts.join(" · ")}</Text>
             )}

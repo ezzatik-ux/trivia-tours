@@ -5,23 +5,27 @@ import { FileDown, MessageCircle, Mail, Link2, Check } from "lucide-react";
 
 type Props = {
   packageName: string;
+  code?: string | null;
   shareUrl: string;
   pdfUrl: string;
 };
 
 export function PackageShareActions({
   packageName,
+  code,
   shareUrl,
   pdfUrl,
 }: Props) {
   const [copied, setCopied] = useState(false);
 
-  const waMsg = `Check out this package: ${packageName}\n${shareUrl}`;
+  const label = code ? `Package ${code}: ${packageName}` : packageName;
+
+  const waMsg = `Check out this package: ${label}\n${shareUrl}`;
   const waHref = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
 
   function handleEmail() {
-    const subject = `Trivia Pro Package: ${packageName}`;
-    const body = `Check out this package: ${packageName}\n\n${shareUrl}`;
+    const subject = `Trivia Pro Package: ${label}`;
+    const body = `Check out this package: ${label}\n\n${shareUrl}`;
     window.open(
       `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
       "_blank"

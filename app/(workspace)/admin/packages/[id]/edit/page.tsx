@@ -57,6 +57,7 @@ export default async function EditPackagePage({
           id: pkg.id,
           name: pkg.name,
           slug: pkg.slug,
+          code: pkg.code,
           countryId: pkg.countryId,
           cityId: pkg.cityId,
           shortDesc: pkg.shortDesc,

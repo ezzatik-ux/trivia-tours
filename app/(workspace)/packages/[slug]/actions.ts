@@ -126,6 +126,7 @@ export async function getPackageDetailBySlug(slug: string) {
     id: pkg.id,
     name: pkg.name,
     slug: pkg.slug,
+    code: pkg.code,
     shortDesc: pkg.shortDesc,
     overview: pkg.overview,
     durationDays: pkg.durationDays,

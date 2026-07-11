@@ -11,6 +11,7 @@ type PackageRow = {
   id: string;
   name: string;
   slug: string;
+  code: string | null;
   countryName: string | null;
   durationDays: number;
   status: "DRAFT" | "ACTIVE" | "INACTIVE";
@@ -61,6 +62,7 @@ export function PackagesTable({ rows }: { rows: PackageRow[] }) {
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
               <th className="px-4 py-3 font-semibold text-slate-600">Name</th>
+              <th className="px-4 py-3 font-semibold text-slate-600">Code</th>
               <th className="px-4 py-3 font-semibold text-slate-600">Country</th>
               <th className="px-4 py-3 font-semibold text-slate-600">Duration</th>
               <th className="px-4 py-3 font-semibold text-slate-600">Status</th>
@@ -80,6 +82,15 @@ export function PackagesTable({ rows }: { rows: PackageRow[] }) {
                   <div className="text-xs text-slate-400 font-mono mt-0.5">
                     {row.slug}
                   </div>
+                </td>
+                <td className="px-4 py-3">
+                  {row.code ? (
+                    <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+                      {row.code}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-slate-700">
                   {row.countryName ?? "—"}

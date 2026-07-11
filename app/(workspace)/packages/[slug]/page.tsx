@@ -70,6 +70,11 @@ export default async function PackageDetailPage({
               <Clock className="w-3.5 h-3.5 text-trivia-500" />
               {durationLabel}
             </span>
+            {pkg.code && (
+              <span className="inline-flex items-center font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+                {pkg.code}
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-bold text-slate-900">{pkg.name}</h1>
           {pkg.shortDesc && (
@@ -96,6 +101,7 @@ export default async function PackageDetailPage({
 
       <PackageShareActions
         packageName={pkg.name}
+        code={pkg.code}
         shareUrl={shareUrl}
         pdfUrl={pdfUrl}
       />
