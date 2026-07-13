@@ -1108,6 +1108,7 @@ import {
       nights: integer("nights").notNull().default(1),
       boardBasis: boardBasisEnum("board_basis").notNull().default("BB"),
       startDate: date("start_date"),
+      roomType: varchar("room_type", { length: 255 }),
       createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (t) => ({

@@ -31,6 +31,7 @@ type AccRow = {
   nights: number;
   boardBasis: BoardBasis;
   startDate: string;
+  roomType: string;
   images: ProductImage[];
 };
 
@@ -41,6 +42,7 @@ type InitialItem = {
   nights: number;
   boardBasis: BoardBasis;
   startDate?: string | null;
+  roomType?: string | null;
   images?: ProductImage[];
 };
 
@@ -64,6 +66,7 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
       nights: it.nights ?? 1,
       boardBasis: it.boardBasis ?? "BB",
       startDate: it.startDate ?? "",
+      roomType: it.roomType ?? "",
       images: it.images ?? [],
     }))
   );
@@ -84,6 +87,7 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
         nights: 1,
         boardBasis: "BB",
         startDate: "",
+        roomType: "",
         images: [],
       },
     ]);
@@ -155,6 +159,7 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
         nights: it.nights,
         boardBasis: it.boardBasis,
         startDate: it.startDate || null,
+        roomType: it.roomType || null,
       }));
 
       const result = await saveAccommodations(packageId, payload);
@@ -176,6 +181,7 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
               nights: savedRow.nights,
               boardBasis: savedRow.boardBasis as BoardBasis,
               startDate: savedRow.startDate ?? "",
+              roomType: savedRow.roomType ?? "",
             };
           })
         );
@@ -342,6 +348,20 @@ export function PackageAccommodationsEditor({ packageId, initialItems }: Props) 
                     className="form-input"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Room type (optional)
+                </label>
+                <input
+                  type="text"
+                  value={item.roomType}
+                  onChange={(e) => updateItem(index, { roomType: e.target.value })}
+                  placeholder="e.g. Deluxe Double"
+                  disabled={isPending}
+                  className="form-input"
+                />
               </div>
 
               {item.id ? (

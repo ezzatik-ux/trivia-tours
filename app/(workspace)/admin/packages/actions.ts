@@ -45,6 +45,7 @@ export type AccommodationInput = {
   nights: number;
   boardBasis: "RO" | "BB" | "HB" | "FB" | "AI";
   startDate?: string | null;
+  roomType?: string | null;
 };
 
 export type PackageRateInput = {
@@ -634,6 +635,7 @@ export async function getAccommodations(packageId: string) {
       nights: packageAccommodations.nights,
       boardBasis: packageAccommodations.boardBasis,
       startDate: packageAccommodations.startDate,
+      roomType: packageAccommodations.roomType,
     })
     .from(packageAccommodations)
     .where(eq(packageAccommodations.packageId, packageId))
@@ -720,6 +722,7 @@ export async function saveAccommodations(
         const hotelName = item.hotelName.trim();
         const cityName = item.cityName?.trim() || null;
         const startDate = item.startDate || null;
+        const roomType = item.roomType?.trim() || null;
 
         if (item.id && existingIds.has(item.id)) {
           await tx
@@ -731,6 +734,7 @@ export async function saveAccommodations(
               nights: item.nights,
               boardBasis: item.boardBasis,
               startDate,
+              roomType,
             })
             .where(
               and(
@@ -747,6 +751,7 @@ export async function saveAccommodations(
             nights: item.nights,
             boardBasis: item.boardBasis,
             startDate,
+            roomType,
           });
         }
       }
@@ -760,6 +765,7 @@ export async function saveAccommodations(
         nights: packageAccommodations.nights,
         boardBasis: packageAccommodations.boardBasis,
         startDate: packageAccommodations.startDate,
+        roomType: packageAccommodations.roomType,
       })
       .from(packageAccommodations)
       .where(eq(packageAccommodations.packageId, packageId))

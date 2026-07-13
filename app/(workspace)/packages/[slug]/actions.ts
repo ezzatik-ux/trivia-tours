@@ -132,6 +132,7 @@ export async function getPackageDetailBySlug(slug: string) {
       nights: packageAccommodations.nights,
       boardBasis: packageAccommodations.boardBasis,
       startDate: packageAccommodations.startDate,
+      roomType: packageAccommodations.roomType,
     })
     .from(packageAccommodations)
     .where(eq(packageAccommodations.packageId, pkg.id))

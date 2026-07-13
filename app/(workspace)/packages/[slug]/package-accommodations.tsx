@@ -16,6 +16,7 @@ type Accommodation = {
   nights: number;
   boardBasis: BoardBasis;
   startDate: string | null;
+  roomType: string | null;
   images: { url: string; isCover: boolean; sortOrder: number }[];
 };
 
@@ -55,6 +56,11 @@ export function PackageAccommodations({ accommodations }: Props) {
               <Utensils className="w-3.5 h-3.5 text-trivia-500 flex-shrink-0" />
               {BOARD_BASIS_LABELS[acc.boardBasis]}
             </span>
+            {acc.roomType && (
+              <span className="inline-flex items-center gap-1.5">
+                {acc.roomType}
+              </span>
+            )}
           </div>
 
           {acc.startDate && (

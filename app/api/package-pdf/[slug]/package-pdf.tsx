@@ -38,6 +38,7 @@ type PackageData = {
     nights: number;
     boardBasis: "RO" | "BB" | "HB" | "FB" | "AI";
     startDate: string | null;
+    roomType: string | null;
   }[];
   images: { url: string; isCover: boolean }[];
   fromPrice: string | null;
@@ -247,9 +248,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   accColHotel: { flex: 4 },
-  accColDest: { flex: 3 },
-  accColNights: { flex: 2 },
-  accColBasis: { flex: 2 },
+  accColDest: { flex: 2.5 },
+  accColRoom: { flex: 2.5 },
+  accColNights: { flex: 1.5 },
+  accColBasis: { flex: 1.5 },
   accKey: {
     fontSize: 8,
     color: COLORS.lightGray,
@@ -456,6 +458,9 @@ export function PackagePDF({ pkg, qrDataUrl }: Props) {
                   <Text style={[styles.accHeaderCell, styles.accColDest]}>
                     Destination
                   </Text>
+                  <Text style={[styles.accHeaderCell, styles.accColRoom]}>
+                    Room
+                  </Text>
                   <Text style={[styles.accHeaderCell, styles.accColNights]}>
                     Nights
                   </Text>
@@ -470,6 +475,9 @@ export function PackagePDF({ pkg, qrDataUrl }: Props) {
                     </Text>
                     <Text style={[styles.accCell, styles.accColDest]}>
                       {acc.cityName || "—"}
+                    </Text>
+                    <Text style={[styles.accCell, styles.accColRoom]}>
+                      {acc.roomType || "—"}
                     </Text>
                     <Text style={[styles.accCell, styles.accColNights]}>
                       {acc.nights} {acc.nights === 1 ? "night" : "nights"}

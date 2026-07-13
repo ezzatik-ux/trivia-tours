@@ -71,6 +71,13 @@
       "when": 1783778321481,
       "tag": "0009_fearless_deathbird",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783893575880,
+      "tag": "0010_friendly_slipstream",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "package_accommodations" ADD COLUMN "room_type" varchar(255);
